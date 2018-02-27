@@ -1,12 +1,15 @@
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <thread>
 #include <vector>
 
 using std::dynamic_pointer_cast;
 using std::make_shared;
+using std::mutex;
 using std::shared_ptr;
 using std::thread;
+using std::unique_lock;
 using std::vector;
 
 #include "externalmessage.h"
@@ -61,10 +64,72 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
                 dynamic_pointer_cast<ExternalMessage>(message);
 
         shared_ptr<Session> session = make_shared<Session>(*this, externalMessage);
+        addSession(session);
+    } else {
+        shared_ptr<InternalMessage> internalMessage =
+                dynamic_pointer_cast<InternalMessage>(message);
+
+        shared_ptr<Session> session = getSession(internalMessage->getSessionId());
+        session->processMessage(internalMessage);
     }
 }
 
 void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
 {
-    throw std::logic_error("unimplemented");
+    shared_ptr<vector<char>> rawMessagePtr = make_shared<vector<char>>(move(message->compile()));
+    for (auto node_ptr : mNodes)
+    {
+        if (node_ptr.first != mId)
+        {
+            const Node &node = node_ptr.second;
+            boost::asio::ip::udp::endpoint targetEndpoint(
+                        boost::asio::ip::address::from_string(node.getAddress()),
+                        node.getPort());
+            mSocketController.send(targetEndpoint, rawMessagePtr);
+        }
+    }
+}
+
+void ReliableBroadcast::addSession(std::shared_ptr<ReliableBroadcast::Session> session)
+{
+    unique_lock<mutex> lock(mWriteMutex);
+    while (!mReadersCount)
+    {
+        mCanWriteConditionVariable.wait(lock);
+    }
+    mSessions[session->getId()] = session;
+}
+
+void ReliableBroadcast::removeSession(uint64_t id)
+{
+    {
+        unique_lock<mutex> lock(mWriteMutex);
+        while (!mReadersCount)
+        {
+            mCanWriteConditionVariable.wait(lock);
+        }
+        auto sessionPtr = mSessions.find(id);
+        if (sessionPtr != mSessions.end())
+        {
+            mSessions.erase(sessionPtr);
+        }
+    }
+    mCanWriteConditionVariable.notify_one();
+}
+
+std::shared_ptr<ReliableBroadcast::Session> ReliableBroadcast::getSession(uint64_t id) const
+{
+    ++mReadersCount;
+    {
+        unique_lock<mutex> lock(mWriteMutex);
+    }
+    auto sessionPtr = mSessions.find(id);
+    shared_ptr<ReliableBroadcast::Session> session = nullptr;
+    if (sessionPtr != mSessions.end()) {
+        session = sessionPtr->second;
+    }
+    if (mReadersCount.fetch_sub(1) == 1) {
+        mCanWriteConditionVariable.notify_one();
+    }
+    return session;
 }

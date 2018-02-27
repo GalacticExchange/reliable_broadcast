@@ -6,8 +6,14 @@ using std::vector;
 #include "sendmessage.h"
 
 
-SendMessage::SendMessage(int sender, vector<char> &&messageHash):
-    InternalMessage(sender, move(messageHash))
+SendMessage::SendMessage(int sender, uint64_t sessionId, vector<char> &&messageHash):
+    InternalMessage(sender, sessionId, move(messageHash))
+{
+
+}
+
+SendMessage::SendMessage(vector<char>::const_iterator begin, vector<char>::const_iterator end):
+    InternalMessage(begin, end)
 {
 
 }

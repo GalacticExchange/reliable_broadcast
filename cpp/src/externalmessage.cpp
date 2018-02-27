@@ -19,21 +19,29 @@ Message::MessageType ExternalMessage::getType() const
     return MESSAGE;
 }
 
-vector<char> ExternalMessage::getMessageHash() const
+const vector<char> &ExternalMessage::getMessageHash() const
+{
+    if (mMessageHash.empty())
+    {
+        calculateMessageHash();
+    }
+    return mMessageHash;
+}
+
+void ExternalMessage::calculateMessageHash() const
 {
     sHashFunction.process_bytes(&*mMessage.begin(), mMessage.size());
     unsigned int digest[5];
     sHashFunction.get_digest(digest);
-    vector<char> hash(20);
+    mMessageHash.resize(20);
     for(size_t i = 0; i < 5; ++i)
     {
         const char* tmp = reinterpret_cast<char*>(digest);
-        hash[i*4] = tmp[i*4 + 3];
-        hash[i*4 + 1] = tmp[i*4 + 2];
-        hash[i*4 + 2] = tmp[i*4 + 1];
-        hash[i*4 + 3] = tmp[i*4];
+        mMessageHash[i*4] = tmp[i*4 + 3];
+        mMessageHash[i*4 + 1] = tmp[i*4 + 2];
+        mMessageHash[i*4 + 2] = tmp[i*4 + 1];
+        mMessageHash[i*4 + 3] = tmp[i*4];
     }
-    return hash;
 }
 
 boost::uuids::detail::sha1 ExternalMessage::sHashFunction;

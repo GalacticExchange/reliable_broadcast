@@ -1,6 +1,7 @@
 #ifndef RELIABLEBROADCAST_H
 #define RELIABLEBROADCAST_H
 
+#include <atomic>
 #include <unordered_map>
 #include <vector>
 
@@ -21,7 +22,10 @@ class ReliableBroadcast
     std::unordered_map<int, Node> mNodes;
     SocketController mSocketController;
     boost::asio::io_service mIoService;
-    std::unordered_map<int, std::shared_ptr<Session>> mSessions;
+    mutable std::atomic<size_t> mReadersCount;
+    mutable std::condition_variable mCanWriteConditionVariable;
+    mutable std::mutex mWriteMutex;
+    std::unordered_map<uint64_t, std::shared_ptr<Session>> mSessions;
     ThreadSafeQueue<std::shared_ptr<Message>> mMessageQueue;
 public:
     ReliableBroadcast(int id, const std::unordered_map<int, Node> &nodes);
@@ -33,6 +37,9 @@ private:
     void asyncProcessMessage();
     void processMessage(std::shared_ptr<Message> message);
     void broadcast(std::shared_ptr<InternalMessage> message);
+    void addSession(std::shared_ptr<Session> session);
+    void removeSession(uint64_t id);
+    std::shared_ptr<Session> getSession(uint64_t id) const;
 };
 
 #endif // RELIABLEBROADCAST_H

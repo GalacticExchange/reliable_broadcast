@@ -10,6 +10,7 @@ using std::shared_ptr;
 using boost::asio::ip::udp;
 
 #include "message.h"
+#include "reliablebroadcast.h"
 #include "socketcontroller.h"
 
 
@@ -19,6 +20,20 @@ SocketController::SocketController(int port, ReliableBroadcast &owner):
     mOwner(owner)
 {
     asyncWaitForData();
+}
+
+void SocketController::send(udp::endpoint &target,
+                            std::shared_ptr<const std::vector<char>> buffer)
+{
+    mSocket.async_send_to(boost::asio::buffer(*buffer), target, [buffer](
+                          const boost::system::error_code& error,
+                          std::size_t)
+    {
+        if (error)
+        {
+            cerr << "Error on send: " << error << endl;
+        }
+    });
 }
 
 void SocketController::listen()
@@ -36,6 +51,7 @@ void SocketController::onReceive(size_t length)
         cerr << (int) mBuffer[i];
     }
     cerr << "]" << endl;
+    mOwner.postMessage(message);
 }
 
 void SocketController::asyncWaitForData()

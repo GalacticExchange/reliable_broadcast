@@ -16,7 +16,8 @@ class SocketController
     ReliableBroadcast &mOwner;
 public:
     SocketController(int port, ReliableBroadcast &owner);
-    void send(const std::vector<char> &buffer);
+    void send(boost::asio::ip::udp::endpoint &target,
+              std::shared_ptr<const std::vector<char>> buffer);
     void listen();
 private:
     void onReceive(size_t length);

@@ -7,6 +7,7 @@ using std::vector;
 
 #include "externalmessage.h"
 #include "message.h"
+#include "sendmessage.h"
 
 
 shared_ptr<Message> Message::parse(vector<char>::iterator begin, vector<char>::iterator end)
@@ -14,9 +15,9 @@ shared_ptr<Message> Message::parse(vector<char>::iterator begin, vector<char>::i
     if (begin >= end) {
         return nullptr;
     }
-    if (*begin == MessageType::MESSAGE) {
-        return make_shared<ExternalMessage>(begin + 1, end);
+    if (*begin == MessageType::SEND) {
+        return make_shared<SendMessage>(begin + 1, end);
     } else {
-        return nullptr;
+        return make_shared<ExternalMessage>(begin, end);
     }
 }

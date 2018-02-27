@@ -9,13 +9,17 @@
 class ExternalMessage : public Message
 {
     std::vector<char> mMessage;
+    mutable std::vector<char> mMessageHash;
     static boost::uuids::detail::sha1 sHashFunction;
 public:
     ExternalMessage(std::vector<char>::iterator begin, std::vector<char>::iterator end);
 
     const std::vector<char> &getMessage() const;
     MessageType getType() const override;
-    std::vector<char> getMessageHash() const;
+    const std::vector<char> &getMessageHash() const;
+
+private:
+    void calculateMessageHash() const;
 };
 
 #endif // EXTERNALMESSAGE_H

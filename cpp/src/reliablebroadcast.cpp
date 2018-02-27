@@ -63,14 +63,36 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
         shared_ptr<ExternalMessage> externalMessage =
                 dynamic_pointer_cast<ExternalMessage>(message);
 
-        shared_ptr<Session> session = make_shared<Session>(*this, externalMessage);
+        shared_ptr<Session> session = make_shared<Session>(
+                    *this,
+                    externalMessage->getMessagePtr());
         addSession(session);
+        session->start();
     } else {
         shared_ptr<InternalMessage> internalMessage =
                 dynamic_pointer_cast<InternalMessage>(message);
 
-        shared_ptr<Session> session = getSession(internalMessage->getSessionId());
-        session->processMessage(internalMessage);
+        if (internalMessage->getType() == Message::MessageType::SEND)
+        {
+            shared_ptr<SendMessage> sendMessage =
+                    dynamic_pointer_cast<SendMessage>(internalMessage);
+
+            shared_ptr<Session> session = make_shared<Session>(
+                        *this,
+                        sendMessage->getMessagePtr(),
+                        sendMessage->getSessionId());
+            addSession(session);
+            session->start();
+        } else {
+            shared_ptr<HashMessage> hashMessage =
+                    dynamic_pointer_cast<HashMessage>(internalMessage);
+
+            shared_ptr<Session> session = getSession(hashMessage->getSessionId());
+            if (session)
+            {
+                session->processMessage(hashMessage);
+            }
+        }
     }
 }
 
@@ -88,12 +110,13 @@ void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
             mSocketController.send(targetEndpoint, rawMessagePtr);
         }
     }
+    processMessage(message);
 }
 
 void ReliableBroadcast::addSession(std::shared_ptr<ReliableBroadcast::Session> session)
 {
     unique_lock<mutex> lock(mWriteMutex);
-    while (!mReadersCount)
+    while (mReadersCount)
     {
         mCanWriteConditionVariable.wait(lock);
     }

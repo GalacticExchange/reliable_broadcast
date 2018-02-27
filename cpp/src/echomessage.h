@@ -1,13 +1,16 @@
 #ifndef ECHOMESSAGE_H
 #define ECHOMESSAGE_H
 
-#include <internalmessage.h>
-#include <sendmessage.h>
+#include "hashmessage.h"
+#include "sendmessage.h"
 
-class EchoMessage : public InternalMessage
+class EchoMessage : public HashMessage
 {
 public:
-    EchoMessage(const SendMessage &sendMessage);
+    EchoMessage(int sender,
+                uint64_t sessionId,
+                std::shared_ptr<const std::vector<char>> messageHash);
+    EchoMessage(std::vector<char>::const_iterator begin, std::vector<char>::const_iterator end);
     MessageType getType() const override;
 };
 

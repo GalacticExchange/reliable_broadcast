@@ -20,29 +20,40 @@ using std::vector;
 #include "session.h"
 
 
-ReliableBroadcast::Session::Session(ReliableBroadcast &owner, shared_ptr<ExternalMessage> message):
+ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
+                                    shared_ptr<const vector<char>> message):
     mId(getRandomId()),
+    mMessage(message),
+    mMessageHash(calculateMessageHash(message)),
+    mOwner(owner)
+{    
+
+}
+
+ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
+                                    shared_ptr<const vector<char> > message,
+                                    uint64_t id):
+    mId(id),
     mMessage(message),
     mOwner(owner)
 {
-    mEchoMessageCounter.insert(mOwner.mId);
-    mReadyMessageCounter.insert(mOwner.mId);
-    shared_ptr<SendMessage> sendMessage =
-            make_shared<SendMessage>(mOwner.mId, mId, vector<char>(message->getMessageHash()));
-    cerr << "Brodcast SEND message" << endl;
-    mOwner.broadcast(sendMessage);
-    cerr << "Brodcast ECHO message" << endl;
-    mOwner.broadcast(make_shared<EchoMessage>(*sendMessage));
+
 }
 
-void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage> message)
+void ReliableBroadcast::Session::start()
 {
-    if (message->getType() != Message::SEND)
+    shared_ptr<SendMessage> sendMessage =
+            make_shared<SendMessage>(mOwner.mId, mId, mMessage);
+    cerr << "Brodcast SEND message" << endl;
+    mOwner.broadcast(sendMessage);
+}
+
+void ReliableBroadcast::Session::processMessage(std::shared_ptr<HashMessage> message)
+{
+
+    if (message->getMessageHash() != *mMessageHash)
     {
-        if (message->getMessageHash() != mMessage->getMessageHash())
-        {
-            return;
-        }
+        return;
     }
 
     bool _false = false;
@@ -59,12 +70,12 @@ void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage>
     }
 
     if (message->getType() == Message::SEND) {
-        cerr << "Received SEND message" << endl;
+        cerr << "Received SEND message from " << message->getSenderId() << endl;
         shared_ptr<SendMessage> sendMessage = dynamic_pointer_cast<SendMessage>(message);
         cerr << "Brodcast ECHO message" << endl;
-        mOwner.broadcast(make_shared<EchoMessage>(*sendMessage));
+        mOwner.broadcast(make_shared<EchoMessage>(mOwner.mId, mId, mMessageHash));
     } else if (message->getType() == Message::ECHO_MESSAGE) {
-        cerr << "Received ECHO message" << endl;
+        cerr << "Received ECHO message from " << message->getSessionId() << endl;
         shared_ptr<EchoMessage> echoMessage = dynamic_pointer_cast<EchoMessage>(message);
         if (!mFirstReadyMessageWasSent)
         {
@@ -84,7 +95,7 @@ void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage>
             }
         }
     } else if (message->getType() == Message::READY) {
-        cerr << "Received READY message" << endl;
+        cerr << "Received READY message from " << message->getSenderId() << endl;
         shared_ptr<ReadyMessage> readyMessage = dynamic_pointer_cast<ReadyMessage>(message);
         if (!mSecondReadyMessageWasSent)
         {
@@ -96,8 +107,7 @@ void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage>
                 {
                     if (mSecondReadyMessageWasSent.compare_exchange_strong(_false, true))
                     {
-                        mReadyMessageCounter.clear();
-                        mReadyMessageCounter.insert(mOwner.mId);
+                        mReadyMessageCounter.clear();                        
                         sendReadyMessage = true;
                     }
                 }
@@ -143,8 +153,6 @@ struct BitLenght<0>
 
 uint64_t ReliableBroadcast::Session::getRandomId()
 {
-    cerr << "RAND_MAX = " << RAND_MAX << endl;
-    cerr << "bit length = " << BitLenght<RAND_MAX>::value << endl;
     uint64_t random = 0;
     for (size_t bits = 0; bits < 64; bits += BitLenght<RAND_MAX>::value)
     {
@@ -154,10 +162,33 @@ uint64_t ReliableBroadcast::Session::getRandomId()
     return random;
 }
 
+shared_ptr<vector<char> > ReliableBroadcast::Session::calculateMessageHash(
+        shared_ptr<const vector<char> > message)
+{
+    sHashFunction.process_bytes(&*message->begin(), message->size());
+    unsigned int digest[5];
+
+    sHashFunction.get_digest(digest);
+
+    shared_ptr<vector<char>> hash = make_shared<vector<char>>(20);
+    for(size_t i = 0; i < 5; ++i)
+    {
+        const char* tmp = reinterpret_cast<char*>(digest);
+        (*hash)[i*4] = tmp[i*4 + 3];
+        (*hash)[i*4 + 1] = tmp[i*4 + 2];
+        (*hash)[i*4 + 2] = tmp[i*4 + 1];
+        (*hash)[i*4 + 3] = tmp[i*4];
+    }
+
+    return hash;
+}
+
+boost::uuids::detail::sha1 ReliableBroadcast::Session::sHashFunction;
+
 void ReliableBroadcast::Session::deliver()
 {
-    mOwner.removeSession(mId);
-    for (char character : mMessage->getMessage())
+    mOwner.removeSession(mId);    
+    for (char character : *mMessage)
     {
         cout << character;
     }

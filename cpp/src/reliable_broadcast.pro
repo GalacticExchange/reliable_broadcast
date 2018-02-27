@@ -16,7 +16,8 @@ SOURCES += main.cpp \
     sendmessage.cpp \
     readymessage.cpp \
     socketcontroller.cpp \
-    session.cpp
+    session.cpp \
+    hashmessage.cpp
 
 HEADERS += \
     reliablebroadcast.h \
@@ -29,4 +30,5 @@ HEADERS += \
     readymessage.h \
     socketcontroller.h \
     session.h \
-    threadsafequeue.h
+    threadsafequeue.h \
+    hashmessage.h

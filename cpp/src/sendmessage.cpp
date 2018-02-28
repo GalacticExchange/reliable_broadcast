@@ -2,6 +2,7 @@
 #include <vector>
 
 using std::copy;
+using std::make_shared;
 using std::move;
 using std::shared_ptr;
 using std::vector;
@@ -17,7 +18,8 @@ SendMessage::SendMessage(int sender, uint64_t sessionId, shared_ptr<const vector
 }
 
 SendMessage::SendMessage(vector<char>::const_iterator begin, vector<char>::const_iterator end):
-    InternalMessage(begin, end)
+    InternalMessage(begin, end),
+    mMessage(make_shared<vector<char>>(begin + getInternalMessageSize(), end))
 {
 
 }

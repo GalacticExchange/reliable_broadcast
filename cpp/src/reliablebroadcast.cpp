@@ -4,6 +4,8 @@
 #include <thread>
 #include <vector>
 
+using std::cerr;
+using std::endl;
 using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::mutex;
@@ -76,13 +78,18 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
         {
             shared_ptr<SendMessage> sendMessage =
                     dynamic_pointer_cast<SendMessage>(internalMessage);
+            cerr << "Received SEND message from " << sendMessage->getSenderId() << endl;
 
-            shared_ptr<Session> session = make_shared<Session>(
-                        *this,
-                        sendMessage->getMessagePtr(),
-                        sendMessage->getSessionId());
-            addSession(session);
-            session->start();
+            shared_ptr<Session> session = getSession(sendMessage->getSessionId());
+            if (session == nullptr)
+            {
+                session = make_shared<Session>(
+                            *this,
+                            sendMessage->getMessagePtr(),
+                            sendMessage->getSessionId());
+                addSession(session);
+            }
+            session->processSendMessage();
         } else {
             shared_ptr<HashMessage> hashMessage =
                     dynamic_pointer_cast<HashMessage>(internalMessage);
@@ -99,6 +106,19 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
 void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
 {
     shared_ptr<vector<char>> rawMessagePtr = make_shared<vector<char>>(move(message->compile()));
+//    cerr << "Going to brodcast message: [";
+//    bool first = true;
+//    for (char byte : *rawMessagePtr)
+//    {
+//        if (first)
+//        {
+//            first = false;
+//        } else {
+//            cerr <<  ", ";
+//        }
+//        cerr << static_cast<int>(byte);
+//    }
+//    cerr << "]" << endl;
     for (auto node_ptr : mNodes)
     {
         if (node_ptr.first != mId)

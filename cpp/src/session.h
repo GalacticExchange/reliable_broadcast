@@ -35,6 +35,7 @@ public:
             uint64_t id);
     void start();
     void processMessage(std::shared_ptr<HashMessage> message);
+    void processSendMessage();
     uint64_t getId() const;
 
 private:

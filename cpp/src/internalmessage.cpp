@@ -26,21 +26,14 @@ InternalMessage::InternalMessage(vector<char>::const_iterator begin,
     {
         throw std::logic_error("Buffer is too small");
     }
-    for (size_t i = 0; i < sizeof(int); ++i)
+    for (size_t i = 0; i < sizeof(mSender); ++i)
     {
         reinterpret_cast<char*>(&mSender)[i] = begin[i];
     }
-    for (size_t i = 0; i < 8; ++i)
+    for (size_t i = 0; i < sizeof(mSessionId); ++i)
     {
-        reinterpret_cast<char*>(&mSessionId)[sizeof(int) + i] = begin[i];
+        reinterpret_cast<char*>(&mSessionId)[i] = begin[sizeof(mSender) + i];
     }
-//    shared_ptr<vector<char>> messageHash =
-//            make_shared<vector<char>>(end - begin - (sizeof(int) + 8));
-//    for (size_t i = 0; i < messageHash->size(); ++i)
-//    {
-//        (*messageHash)[i] = begin[sizeof(int) + 8 + i];
-//    }
-//    mMessageHash = messageHash;
 }
 
 int InternalMessage::getSenderId() const
@@ -66,10 +59,6 @@ std::vector<char> InternalMessage::compile() const
         rawMessage[1 + sizeof(mSender) + i] = reinterpret_cast<const char*>(&mSessionId)[i];
     }
     compile(rawMessage.begin() + 1 + sizeof(mSender) + sizeof(mSessionId));
-//    for (size_t i = 0; i < mMessageHash->size(); ++i)
-//    {
-//        rawMessage[1 + sizeof(int) + sizeof(mSessionId) + i] = (*mMessageHash)[i];
-//    }
     return rawMessage;
 }
 

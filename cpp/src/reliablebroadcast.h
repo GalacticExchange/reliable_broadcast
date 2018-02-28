@@ -27,6 +27,7 @@ class ReliableBroadcast
     mutable std::mutex mWriteMutex;
     std::unordered_map<uint64_t, std::shared_ptr<Session>> mSessions;
     ThreadSafeQueue<std::shared_ptr<Message>> mMessageQueue;
+
 public:
     ReliableBroadcast(int id, const std::unordered_map<int, Node> &nodes);
     void start();

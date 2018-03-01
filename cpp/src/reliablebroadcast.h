@@ -50,6 +50,8 @@ private:
     boost::asio::io_service mIoService;
     SessionsPool mSessions;
     ThreadSafeQueue<std::shared_ptr<Message>> mMessageQueue;
+    std::atomic<size_t> mCommitCounter;
+    std::chrono::system_clock::time_point mStartTime;
 
 public:
     ReliableBroadcast(int id, const std::unordered_map<int, Node> &nodes);

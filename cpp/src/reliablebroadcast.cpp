@@ -32,7 +32,8 @@ ReliableBroadcast::ReliableBroadcast(int id, const std::unordered_map<int, Node>
     mId(id),
     mNodes(nodes),
     mSocketController(mNodes[id].getPort(), *this),
-    mSessions(*this)
+    mSessions(*this),
+    mCommitCounter(0)
 {
 }
 
@@ -89,18 +90,18 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
 
 void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
 {
-    cerr << "\tBrodcast ";
-    if (message->getType() == Message::MessageType::SEND)
-    {
-        cerr << "SEND";
-    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
-        cerr << "ECHO";
-    } else if (message->getType() == Message::MessageType::READY) {
-        cerr << "READY";
-    } else {
-        cerr << "UNKNOWN";
-    }
-    cerr << " message in session #" << message->getSessionId() << endl;
+//    cerr << "\tBrodcast ";
+//    if (message->getType() == Message::MessageType::SEND)
+//    {
+//        cerr << "SEND";
+//    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
+//        cerr << "ECHO";
+//    } else if (message->getType() == Message::MessageType::READY) {
+//        cerr << "READY";
+//    } else {
+//        cerr << "UNKNOWN";
+//    }
+//    cerr << " message in session #" << message->getSessionId() << endl;
 
     shared_ptr<vector<char>> rawMessagePtr = make_shared<vector<char>>(move(message->compile()));
 //    cerr << "Going to brodcast message: [";
@@ -159,7 +160,7 @@ ReliableBroadcast::SessionsPool::addSession(shared_ptr<InternalMessage> internal
 
 void ReliableBroadcast::SessionsPool::remove(uint64_t sessionId)
 {
-    cerr << "Remove session #" << sessionId << endl;
+//    cerr << "Remove session #" << sessionId << endl;
     unique_lock<shared_mutex> lock(mSessionsMutex);
     mSessions.erase(sessionId);
 }

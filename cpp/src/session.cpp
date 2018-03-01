@@ -37,19 +37,19 @@ ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
 
 void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage> message)
 {
-    cerr << "Process message ";
-    if (message->getType() == Message::MessageType::SEND)
-    {
-        cerr << "SEND";
-    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
-        cerr << "ECHO";
-    } else if (message->getType() == Message::MessageType::READY) {
-        cerr << "READY";
-    } else {
-        cerr << "UNKNOWN";
-    }
-    cerr << " from " << message->getSenderId()
-         << " in session #" << message->getSessionId() << endl;
+//    cerr << "Process message ";
+//    if (message->getType() == Message::MessageType::SEND)
+//    {
+//        cerr << "SEND";
+//    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
+//        cerr << "ECHO";
+//    } else if (message->getType() == Message::MessageType::READY) {
+//        cerr << "READY";
+//    } else {
+//        cerr << "UNKNOWN";
+//    }
+//    cerr << " from " << message->getSenderId()
+//         << " in session #" << message->getSessionId() << endl;
 
     if (message->getType() == Message::MessageType::SEND)
     {
@@ -84,7 +84,7 @@ void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage>
                 process = true;
             } else {
                 mPendingHashMessages.push(hashMessage);
-                cerr << "(wait)" << endl;
+                // cerr << "(wait)" << endl;
             }
         }
         if (process)
@@ -222,11 +222,26 @@ boost::uuids::detail::sha1 ReliableBroadcast::Session::sHashFunction;
 
 void ReliableBroadcast::Session::deliver()
 {
-    cerr << "Deliver message" << endl;
-    for (char character : *mMessage)
+    const size_t UPDATE_INTERVAL = 100;
+    size_t commitCount = mOwner.mCommitCounter.fetch_add(1) + 1;
+    if (commitCount == 1)
     {
-        cout << character;
+        mOwner.mStartTime = std::chrono::system_clock::now();
     }
-    cout << endl;
+    if (commitCount % UPDATE_INTERVAL == 0)
+    {
+        size_t runningTimeSec = std::chrono::duration_cast<std::chrono::seconds>(
+                    std::chrono::system_clock::now() - mOwner.mStartTime).count();
+        if (runningTimeSec)
+        {
+            cout << commitCount / runningTimeSec << " commits per second" << endl;
+        }
+    }
+//    cerr << "Deliver message" << endl;
+//    for (char character : *mMessage)
+//    {
+//        cout << character;
+//    }
+//    cout << endl;
     mOwner.mSessions.removeSession(mId);
 }

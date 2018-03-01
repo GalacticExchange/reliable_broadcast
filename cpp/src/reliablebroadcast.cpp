@@ -29,7 +29,7 @@ void ReliableBroadcast::start()
 {
     asyncProcessMessage();
     vector<thread> pool;
-    for (size_t i = 0; i < thread::hardware_concurrency(); ++i)
+    for (size_t i = 0; i < 1 /*thread::hardware_concurrency()*/; ++i)
     {
         pool.emplace_back([this]
         {
@@ -74,37 +74,26 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
         shared_ptr<InternalMessage> internalMessage =
                 dynamic_pointer_cast<InternalMessage>(message);
 
-        if (internalMessage->getType() == Message::MessageType::SEND)
-        {
-            shared_ptr<SendMessage> sendMessage =
-                    dynamic_pointer_cast<SendMessage>(internalMessage);
-            cerr << "Received SEND message from " << sendMessage->getSenderId() << endl;
-
-            shared_ptr<Session> session = getSession(sendMessage->getSessionId());
-            if (session == nullptr)
-            {
-                session = make_shared<Session>(
-                            *this,
-                            sendMessage->getMessagePtr(),
-                            sendMessage->getSessionId());
-                addSession(session);
-            }
-            session->processSendMessage();
-        } else {
-            shared_ptr<HashMessage> hashMessage =
-                    dynamic_pointer_cast<HashMessage>(internalMessage);
-
-            shared_ptr<Session> session = getSession(hashMessage->getSessionId());
-            if (session)
-            {
-                session->processMessage(hashMessage);
-            }
-        }
+        shared_ptr<Session> session = getOrCreateSession(internalMessage);
+        session->processMessage(internalMessage);
     }
 }
 
 void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
 {
+    cerr << "\tBrodcast ";
+    if (message->getType() == Message::MessageType::SEND)
+    {
+        cerr << "SEND";
+    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
+        cerr << "ECHO";
+    } else if (message->getType() == Message::MessageType::READY) {
+        cerr << "READY";
+    } else {
+        cerr << "UNKNOWN";
+    }
+    cerr << " message in session #" << message->getSessionId() << endl;
+
     shared_ptr<vector<char>> rawMessagePtr = make_shared<vector<char>>(move(message->compile()));
 //    cerr << "Going to brodcast message: [";
 //    bool first = true;
@@ -173,6 +162,31 @@ std::shared_ptr<ReliableBroadcast::Session> ReliableBroadcast::getSession(uint64
     }
     if (mReadersCount.fetch_sub(1) == 1) {
         mCanWriteConditionVariable.notify_one();
+    }
+    return session;
+}
+
+shared_ptr<ReliableBroadcast::Session>
+ReliableBroadcast::getOrCreateSession(shared_ptr<InternalMessage> internalMessage)
+{
+    shared_ptr<ReliableBroadcast::Session> session = getSession(internalMessage->getSessionId());
+    if (!session)
+    {
+        session = make_shared<Session>(*this, internalMessage);
+        {
+            unique_lock<mutex> lock(mWriteMutex);
+            while (mReadersCount)
+            {
+                mCanWriteConditionVariable.wait(lock);
+            }
+            auto session_ptr = mSessions.find(internalMessage->getSessionId());
+            if (session_ptr == mSessions.end())
+            {
+                mSessions[session->getId()] = session;
+            } else {
+                session = session_ptr->second;
+            }
+        }
     }
     return session;
 }

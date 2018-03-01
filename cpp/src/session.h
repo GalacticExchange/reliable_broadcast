@@ -15,33 +15,39 @@
 
 class ReliableBroadcast::Session
 {
-    uint64_t mId;
+    const uint64_t mId;
+    const size_t n;
+    const size_t t;
+    const size_t mEchoMessageCountTarget;
+    ReliableBroadcast &mOwner;
+    std::mutex mMessageMutex;
     std::shared_ptr<const std::vector<char>> mMessage;
     std::shared_ptr<const std::vector<char>> mMessageHash;
-    ReliableBroadcast &mOwner;
+    std::queue<std::shared_ptr<HashMessage>> mPendingHashMessages;
     std::mutex mEchoMessageCounterMutex;
     std::unordered_set<int> mEchoMessageCounter;
     std::mutex mReadyMessageCounterMutex;
     std::unordered_set<int> mReadyMessageCounter;
-    std::atomic<bool> mFirstReadyMessageWasSent;
-    std::atomic<bool> mSecondReadyMessageWasSent;
+    std::atomic<bool> mReadyMessageWasSent;
     std::atomic<bool> mDelivered;
     static boost::uuids::detail::sha1 sHashFunction;
 
 public:    
     Session(ReliableBroadcast &owner, std::shared_ptr<const std::vector<char>> message);
-    Session(ReliableBroadcast &owner,
-            std::shared_ptr<const std::vector<char>> message,
-            uint64_t id);
+    Session(ReliableBroadcast &owner, std::shared_ptr<InternalMessage> internalMessage);
+
     void start();
-    void processMessage(std::shared_ptr<HashMessage> message);
-    void processSendMessage();
+    void processMessage(std::shared_ptr<InternalMessage> message);
     uint64_t getId() const;
 
 private:
+    Session(uint64_t mId, ReliableBroadcast &owner);
+
     static uint64_t getRandomId();
     static std::shared_ptr<std::vector<char>> calculateMessageHash(
             std::shared_ptr<const std::vector<char>> message);
+    static size_t getT(size_t n);
+    static size_t getEchoMessageCountTarget(size_t n, size_t t);
     void deliver();
 };
 

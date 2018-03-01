@@ -41,6 +41,7 @@ private:
     void addSession(std::shared_ptr<Session> session);
     void removeSession(uint64_t id);
     std::shared_ptr<Session> getSession(uint64_t id) const;
+    std::shared_ptr<Session> getOrCreateSession(std::shared_ptr<InternalMessage> internalMessage);
 };
 
 #endif // RELIABLEBROADCAST_H

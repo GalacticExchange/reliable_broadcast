@@ -8,11 +8,20 @@ using std::shared_ptr;
 using std::vector;
 
 #include "sendmessage.h"
+#include "session.h"
 
 
 SendMessage::SendMessage(int sender, uint64_t sessionId, shared_ptr<const vector<char>> message):
     InternalMessage(sender, sessionId),
     mMessage(message)
+{
+
+}
+
+SendMessage::SendMessage(int sender, std::shared_ptr<ExternalMessage> externalMessage):
+    SendMessage(sender,
+                ReliableBroadcast::Session::getRandomId(),
+                externalMessage->getMessagePtr())
 {
 
 }

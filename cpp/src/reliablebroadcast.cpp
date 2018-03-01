@@ -1,3 +1,4 @@
+#include <chrono>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -5,14 +6,23 @@
 #include <vector>
 
 using std::cerr;
+using std::chrono::system_clock;
 using std::endl;
 using std::dynamic_pointer_cast;
+using std::make_pair;
 using std::make_shared;
 using std::mutex;
+using std::pair;
 using std::shared_ptr;
 using std::thread;
-using std::unique_lock;
 using std::vector;
+
+#include <boost/thread/locks.hpp>
+#include <boost/thread/pthread/shared_mutex.hpp>
+
+using boost::shared_lock;
+using boost::shared_mutex;
+using boost::unique_lock;
 
 #include "externalmessage.h"
 #include "reliablebroadcast.h"
@@ -21,7 +31,8 @@ using std::vector;
 ReliableBroadcast::ReliableBroadcast(int id, const std::unordered_map<int, Node> &nodes):
     mId(id),
     mNodes(nodes),
-    mSocketController(mNodes[id].getPort(), *this)
+    mSocketController(mNodes[id].getPort(), *this),
+    mSessions(*this)
 {
 }
 
@@ -31,7 +42,7 @@ void ReliableBroadcast::start()
     vector<thread> pool;
     for (size_t i = 0; i < 1 /*thread::hardware_concurrency()*/; ++i)
     {
-        pool.emplace_back([this]
+        pool.emplace_back([this]()
         {
             this->mIoService.run();
         });
@@ -65,16 +76,13 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message)
         shared_ptr<ExternalMessage> externalMessage =
                 dynamic_pointer_cast<ExternalMessage>(message);
 
-        shared_ptr<Session> session = make_shared<Session>(
-                    *this,
-                    externalMessage->getMessagePtr());
-        addSession(session);
-        session->start();
+        shared_ptr<SendMessage> sendMessage = make_shared<SendMessage>(mId, externalMessage);
+        broadcast(sendMessage);
     } else {
         shared_ptr<InternalMessage> internalMessage =
                 dynamic_pointer_cast<InternalMessage>(message);
 
-        shared_ptr<Session> session = getOrCreateSession(internalMessage);
+        shared_ptr<Session> session = mSessions.getOrCreateSession(internalMessage);
         session->processMessage(internalMessage);
     }
 }
@@ -122,71 +130,76 @@ void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
     processMessage(message);
 }
 
-void ReliableBroadcast::addSession(std::shared_ptr<ReliableBroadcast::Session> session)
+ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner):
+    mOwner(owner),
+    mRemovingThread([this]()
 {
-    unique_lock<mutex> lock(mWriteMutex);
-    while (mReadersCount)
-    {
-        mCanWriteConditionVariable.wait(lock);
-    }
-    mSessions[session->getId()] = session;
+    this->removeLoop();
+})
+{
+
 }
 
-void ReliableBroadcast::removeSession(uint64_t id)
+shared_ptr<ReliableBroadcast::Session>
+ReliableBroadcast::SessionsPool::addSession(shared_ptr<InternalMessage> internalMessage)
 {
+    shared_ptr<ReliableBroadcast::Session> session = make_shared<Session>(mOwner, internalMessage);
     {
-        unique_lock<mutex> lock(mWriteMutex);
-        while (!mReadersCount)
+        unique_lock<shared_mutex> lock(mSessionsMutex);
+        auto session_ptr = mSessions.find(internalMessage->getSessionId());
+        if (session_ptr == mSessions.end())
         {
-            mCanWriteConditionVariable.wait(lock);
-        }
-        auto sessionPtr = mSessions.find(id);
-        if (sessionPtr != mSessions.end())
-        {
-            mSessions.erase(sessionPtr);
+            mSessions[session->getId()] = session;
+        } else {
+            session = session_ptr->second;
         }
     }
-    mCanWriteConditionVariable.notify_one();
+    return session;
 }
 
-std::shared_ptr<ReliableBroadcast::Session> ReliableBroadcast::getSession(uint64_t id) const
+void ReliableBroadcast::SessionsPool::remove(uint64_t sessionId)
 {
-    ++mReadersCount;
+    cerr << "Remove session #" << sessionId << endl;
+    unique_lock<shared_mutex> lock(mSessionsMutex);
+    mSessions.erase(sessionId);
+}
+
+void ReliableBroadcast::SessionsPool::removeLoop()
+{
+    while (true)
     {
-        unique_lock<mutex> lock(mWriteMutex);
+        pair<uint64_t, system_clock::time_point> task = mRemoveQueue.pop();
+        std::this_thread::sleep_until(task.second);
+        remove(task.first);
     }
-    auto sessionPtr = mSessions.find(id);
+}
+
+shared_ptr<ReliableBroadcast::Session>
+ReliableBroadcast::SessionsPool::getSession(uint64_t id) const
+{
+    shared_lock<shared_mutex> lock(mSessionsMutex);
     shared_ptr<ReliableBroadcast::Session> session = nullptr;
+    auto sessionPtr = mSessions.find(id);
     if (sessionPtr != mSessions.end()) {
         session = sessionPtr->second;
-    }
-    if (mReadersCount.fetch_sub(1) == 1) {
-        mCanWriteConditionVariable.notify_one();
     }
     return session;
 }
 
 shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::getOrCreateSession(shared_ptr<InternalMessage> internalMessage)
+ReliableBroadcast::SessionsPool::getOrCreateSession(shared_ptr<InternalMessage> internalMessage)
 {
     shared_ptr<ReliableBroadcast::Session> session = getSession(internalMessage->getSessionId());
     if (!session)
     {
-        session = make_shared<Session>(*this, internalMessage);
-        {
-            unique_lock<mutex> lock(mWriteMutex);
-            while (mReadersCount)
-            {
-                mCanWriteConditionVariable.wait(lock);
-            }
-            auto session_ptr = mSessions.find(internalMessage->getSessionId());
-            if (session_ptr == mSessions.end())
-            {
-                mSessions[session->getId()] = session;
-            } else {
-                session = session_ptr->second;
-            }
-        }
+        session = addSession(internalMessage);
     }
     return session;
+}
+
+void ReliableBroadcast::SessionsPool::removeSession(uint64_t sessionId)
+{
+    mRemoveQueue.push(make_pair(
+                          sessionId,
+                          system_clock::now() + std::chrono::seconds(REMOVE_DELAY_SEC)));
 }

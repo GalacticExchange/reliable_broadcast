@@ -2,10 +2,12 @@
 #define RELIABLEBROADCAST_H
 
 #include <atomic>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
 #include <boost/asio.hpp>
+#include <boost/thread/pthread/shared_mutex.hpp>
 
 #include "internalmessage.h"
 #include "message.h"
@@ -16,16 +18,37 @@
 
 class ReliableBroadcast
 {
+public:
     class Session;
+
+private:
+    class SessionsPool
+    {
+        const size_t REMOVE_DELAY_SEC = 10;
+        mutable boost::shared_mutex mSessionsMutex;
+        std::unordered_map<uint64_t, std::shared_ptr<Session>> mSessions;
+        ReliableBroadcast &mOwner;
+        ThreadSafeQueue<std::pair<uint64_t, std::chrono::system_clock::time_point>> mRemoveQueue;
+        std::thread mRemovingThread;
+
+    public:
+        SessionsPool(ReliableBroadcast &owner);
+        std::shared_ptr<Session> getOrCreateSession(
+                std::shared_ptr<InternalMessage> internalMessage);
+        void removeSession(uint64_t sessionId);
+
+    private:
+        std::shared_ptr<Session> getSession(uint64_t id) const;
+        std::shared_ptr<Session> addSession(std::shared_ptr<InternalMessage> internalMessage);
+        void remove(uint64_t sessionId);
+        void removeLoop();
+    };
 
     int mId;
     std::unordered_map<int, Node> mNodes;
     SocketController mSocketController;
     boost::asio::io_service mIoService;
-    mutable std::atomic<size_t> mReadersCount;
-    mutable std::condition_variable mCanWriteConditionVariable;
-    mutable std::mutex mWriteMutex;
-    std::unordered_map<uint64_t, std::shared_ptr<Session>> mSessions;
+    SessionsPool mSessions;
     ThreadSafeQueue<std::shared_ptr<Message>> mMessageQueue;
 
 public:
@@ -38,10 +61,6 @@ private:
     void asyncProcessMessage();
     void processMessage(std::shared_ptr<Message> message);
     void broadcast(std::shared_ptr<InternalMessage> message);
-    void addSession(std::shared_ptr<Session> session);
-    void removeSession(uint64_t id);
-    std::shared_ptr<Session> getSession(uint64_t id) const;
-    std::shared_ptr<Session> getOrCreateSession(std::shared_ptr<InternalMessage> internalMessage);
 };
 
 #endif // RELIABLEBROADCAST_H

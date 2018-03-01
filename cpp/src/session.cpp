@@ -21,14 +21,6 @@ using std::vector;
 
 
 ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
-                                    shared_ptr<const vector<char>> message):
-    Session(getRandomId(), owner)
-{
-    mMessage = message;
-    mMessageHash = calculateMessageHash(message);
-}
-
-ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
                                     shared_ptr<InternalMessage> internalMessage):
     Session(internalMessage->getSessionId(), owner)
 {
@@ -41,13 +33,6 @@ ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
         shared_ptr<HashMessage> hashMessage = dynamic_pointer_cast<HashMessage>(internalMessage);
         mPendingHashMessages.push(hashMessage);
     }
-}
-
-void ReliableBroadcast::Session::start()
-{
-    shared_ptr<SendMessage> sendMessage =
-            make_shared<SendMessage>(mOwner.mId, mId, mMessage);
-    mOwner.broadcast(sendMessage);
 }
 
 void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage> message)
@@ -243,5 +228,5 @@ void ReliableBroadcast::Session::deliver()
         cout << character;
     }
     cout << endl;
-    mOwner.removeSession(mId);
+    mOwner.mSessions.removeSession(mId);
 }

@@ -4,6 +4,7 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 LIBS += -lboost_system \
+        -lboost_thread \
         -pthread
 
 SOURCES += main.cpp \

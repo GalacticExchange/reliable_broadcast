@@ -32,18 +32,16 @@ class ReliableBroadcast::Session
     std::atomic<bool> mDelivered;
     static boost::uuids::detail::sha1 sHashFunction;
 
-public:    
-    Session(ReliableBroadcast &owner, std::shared_ptr<const std::vector<char>> message);
+public:
     Session(ReliableBroadcast &owner, std::shared_ptr<InternalMessage> internalMessage);
 
-    void start();
     void processMessage(std::shared_ptr<InternalMessage> message);
     uint64_t getId() const;
+    static uint64_t getRandomId();
 
 private:
     Session(uint64_t mId, ReliableBroadcast &owner);
 
-    static uint64_t getRandomId();
     static std::shared_ptr<std::vector<char>> calculateMessageHash(
             std::shared_ptr<const std::vector<char>> message);
     static size_t getT(size_t n);

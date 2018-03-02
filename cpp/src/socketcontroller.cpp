@@ -45,12 +45,14 @@ void SocketController::onReceive(size_t length)
 {
     shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
 //    cerr << "Received data: [";
-//    for (size_t i = 0; i < length; ++i)
+////    for (size_t i = 0; i < length; ++i)
+//    for (size_t i = 0; i < 5; ++i)
 //    {
 //        if (i) cerr << ", ";
 //        cerr << (int) mBuffer[i];
 //    }
-//    cerr << "]" << endl;
+////    cerr << "]" << endl;
+//    cerr << "..." << endl;
     mOwner.postMessage(message);
 }
 

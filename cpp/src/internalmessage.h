@@ -16,7 +16,7 @@ public:
                     std::vector<char>::const_iterator end);
     int getSenderId() const;
     uint64_t getSessionId() const;    
-    std::vector<char> compile() const;
+    std::vector<char> compile(int sender) const;
 
 protected:
     virtual size_t getBytesNeeded() const = 0;

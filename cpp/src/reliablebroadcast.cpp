@@ -41,7 +41,7 @@ void ReliableBroadcast::start()
 {
     asyncProcessMessage();
     vector<thread> pool;
-    for (size_t i = 0; i < 1 /*thread::hardware_concurrency()*/; ++i)
+    for (size_t i = 0; i < thread::hardware_concurrency(); ++i)
     {
         pool.emplace_back([this]()
         {
@@ -103,7 +103,8 @@ void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
 //    }
 //    cerr << " message in session #" << message->getSessionId() << endl;
 
-    shared_ptr<vector<char>> rawMessagePtr = make_shared<vector<char>>(move(message->compile()));
+    shared_ptr<vector<char>> rawMessagePtr =
+            make_shared<vector<char>>(move(message->compile(mId)));
 //    cerr << "Going to brodcast message: [";
 //    bool first = true;
 //    for (char byte : *rawMessagePtr)

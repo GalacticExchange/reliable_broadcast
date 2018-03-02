@@ -46,19 +46,19 @@ uint64_t InternalMessage::getSessionId() const
     return mSessionId;
 }
 
-std::vector<char> InternalMessage::compile() const
+std::vector<char> InternalMessage::compile(int sender) const
 {
-    vector<char> rawMessage(1 + sizeof(mSender) + sizeof(mSessionId) + getBytesNeeded());
+    vector<char> rawMessage(1 + sizeof(sender) + sizeof(mSessionId) + getBytesNeeded());
     rawMessage[0] = getType();
-    for (size_t i = 0; i < sizeof(mSender); ++i)
+    for (size_t i = 0; i < sizeof(sender); ++i)
     {
-        rawMessage[1 + i] = reinterpret_cast<const char*>(&mSender)[i];
+        rawMessage[1 + i] = reinterpret_cast<const char*>(&sender)[i];
     }
     for (size_t i = 0; i < sizeof(mSessionId); ++i)
     {
-        rawMessage[1 + sizeof(mSender) + i] = reinterpret_cast<const char*>(&mSessionId)[i];
+        rawMessage[1 + sizeof(sender) + i] = reinterpret_cast<const char*>(&mSessionId)[i];
     }
-    compile(rawMessage.begin() + 1 + sizeof(mSender) + sizeof(mSessionId));
+    compile(rawMessage.begin() + 1 + sizeof(sender) + sizeof(mSessionId));
     return rawMessage;
 }
 

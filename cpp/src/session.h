@@ -29,8 +29,7 @@ class ReliableBroadcast::Session
     std::mutex mReadyMessageCounterMutex;
     std::unordered_set<int> mReadyMessageCounter;
     std::atomic<bool> mReadyMessageWasSent;
-    std::atomic<bool> mDelivered;
-    static boost::uuids::detail::sha1 sHashFunction;
+    std::atomic<bool> mDelivered;    
 
 public:
     Session(ReliableBroadcast &owner, std::shared_ptr<InternalMessage> internalMessage);

@@ -185,10 +185,10 @@ uint64_t ReliableBroadcast::Session::getRandomId()
 shared_ptr<vector<char> > ReliableBroadcast::Session::calculateMessageHash(
         shared_ptr<const vector<char> > message)
 {
-    sHashFunction.process_bytes(&*message->begin(), message->size());
     unsigned int digest[5];
-
-    sHashFunction.get_digest(digest);
+    boost::uuids::detail::sha1 hashFunction;
+    hashFunction.process_bytes(&*message->begin(), message->size());
+    hashFunction.get_digest(digest);
 
     shared_ptr<vector<char>> hash = make_shared<vector<char>>(20);
     for(size_t i = 0; i < 5; ++i)
@@ -217,8 +217,6 @@ size_t ReliableBroadcast::Session::getEchoMessageCountTarget(size_t n, size_t t)
 {
     return (n + t + 1) / 2 + (n + t + 1) % 2;
 }
-
-boost::uuids::detail::sha1 ReliableBroadcast::Session::sHashFunction;
 
 void ReliableBroadcast::Session::deliver()
 {

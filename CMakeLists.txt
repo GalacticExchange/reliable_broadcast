@@ -20,31 +20,9 @@ set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
 
-set(SOURCES src/main.cpp
-        src/reliablebroadcast.cpp
-        src/message.cpp
-        src/node.cpp
-        src/externalmessage.cpp src/internalmessage.cpp
-        src/echomessage.cpp
-        src/sendmessage.cpp
-        src/readymessage.cpp
-        src/socketcontroller.cpp
-        src/session.cpp
-        src/hashmessage.cpp)
+file(GLOB SOURCES src/*.cpp)
+file(GLOB HEADERS src/*.h)
 
-set(HEADERS
-        src/reliablebroadcast.h
-        src/message.h
-        src/node.h
-        src/externalmessage.h
-        src/internalmessage.h
-        src/echomessage.h
-        src/sendmessage.h
-        src/readymessage.h
-        src/socketcontroller.h
-        src/session.h
-        src/threadsafequeue.h
-        src/hashmessage.h)
 
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})

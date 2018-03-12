@@ -1,8 +1,9 @@
 #ifndef INTERNALMESSAGE_H
 #define INTERNALMESSAGE_H
 
-#include <message.h>
+//#include <message.h>
 #include <vector>
+#include "message.h"
 
 
 class InternalMessage : public Message

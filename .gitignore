@@ -7,3 +7,15 @@ __old
 dependency-reduced-pom.xml
 ops/ansible/inventory
 ops/ansible/inventory_local
+
+
+broadcast
+broadcast.cbp
+cmake_install.cmake
+CmakeCache.txt
+config.json
+Makefile
+CMakeFiles
+cmake-build-debug
+CMakeCache.txt
+

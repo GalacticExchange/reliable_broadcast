@@ -20,11 +20,8 @@ using boost::asio::ip::udp;
 
 SocketController::SocketController(int port) :
         mSocket(mIoService, udp::endpoint(udp::v4(), port)),
-        mBuffer(MAX_LENGTH)
-//        mOwner(owner) {
-{
+        mBuffer(MAX_LENGTH) {
     asyncWaitForData();
-//    syncWaitForData();
 }
 
 void SocketController::send(udp::endpoint &target,

@@ -5,7 +5,8 @@
 
 #include <boost/asio.hpp>
 
-class ReliableBroadcast;
+#include "pipe_controller.h"
+
 
 class SocketController
 {
@@ -13,6 +14,8 @@ class SocketController
     boost::asio::ip::udp::socket mSocket;
     const size_t MAX_LENGTH = 512;
     std::vector<char> mBuffer;
+
+    PipeController pipeController;
 public:
     SocketController(int port);
     void send(boost::asio::ip::udp::endpoint &target,
@@ -21,7 +24,7 @@ public:
 private:
     void onReceive(size_t length);
     void asyncWaitForData();
-    void syncWaitForData();
+//    void syncWaitForData();
     void receiveHandler(const boost::system::error_code &ec, std::size_t bytes_recvd);
 };
 

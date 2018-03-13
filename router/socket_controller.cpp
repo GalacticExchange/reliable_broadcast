@@ -2,6 +2,11 @@
 #include <memory>
 #include <vector>
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
+
+#include "socket_controller.h"
+
 using std::make_shared;
 using std::vector;
 
@@ -10,12 +15,7 @@ using std::cerr;
 using std::endl;
 using std::shared_ptr;
 
-#include <boost/asio.hpp>
-#include <boost/bind.hpp>
-
 using boost::asio::ip::udp;
-
-#include "socket_controller.h"
 
 
 SocketController::SocketController(int port) :
@@ -49,6 +49,7 @@ void SocketController::onReceive(size_t length) {
     std::vector<char> msg = *mMessage;
     std::cout << msg.data() << endl;
 
+    std::cout << pipeController.hasPipe(msg.data());
 //    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
 //    mOwner.postMessage(message);
 }

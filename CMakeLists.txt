@@ -5,11 +5,8 @@ SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
 project(broadcast)
 
 
-
-
 set(TARGET ${CMAKE_PROJECT_NAME})
 set(LIBS lboost_system lboost_thread pthread)
-
 
 
 find_package(Boost 1.58.0 COMPONENTS date_time filesystem system thread REQUIRED)

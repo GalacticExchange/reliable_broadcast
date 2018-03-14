@@ -12,7 +12,7 @@
 #include "internalmessage.h"
 #include "message.h"
 #include "node.h"
-#include "socketcontroller.h"
+#include "messagelistener.h"
 #include "threadsafequeue.h"
 
 
@@ -45,8 +45,9 @@ private:
     };
 
     int mId;
+    uint64_t mMChainHash;
     std::unordered_map<int, Node> mNodes;
-    SocketController mSocketController;
+    MessageListener mMessageListener;
     boost::asio::io_service mIoService;
     SessionsPool mSessions;
     ThreadSafeQueue<std::shared_ptr<Message>> mMessageQueue;
@@ -54,7 +55,7 @@ private:
     std::chrono::system_clock::time_point mStartTime;
 
 public:
-    ReliableBroadcast(int id, const std::unordered_map<int, Node> &nodes);
+    ReliableBroadcast(int id, uint64_t mChainHash, const std::unordered_map<int, Node> &nodes);
     void start();
     void stop();
     void postMessage(std::shared_ptr<Message> message);
@@ -63,6 +64,7 @@ private:
     void asyncProcessMessage();
     void processMessage(std::shared_ptr<Message> message);
     void broadcast(std::shared_ptr<InternalMessage> message);
+    std::string getPipeFileName() const;
 };
 
 #endif // RELIABLEBROADCAST_H

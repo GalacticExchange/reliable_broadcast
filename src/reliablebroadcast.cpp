@@ -2,7 +2,9 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
+#include <sstream>
 #include <thread>
+#include <unordered_map>
 #include <vector>
 
 using std::cerr;
@@ -14,7 +16,9 @@ using std::make_shared;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
+using std::stringstream;
 using std::thread;
+using std::unordered_map;
 using std::vector;
 
 #include <boost/thread/locks.hpp>
@@ -28,10 +32,11 @@ using boost::unique_lock;
 #include "reliablebroadcast.h"
 #include "session.h"
 
-ReliableBroadcast::ReliableBroadcast(int id, const std::unordered_map<int, Node> &nodes):
+ReliableBroadcast::ReliableBroadcast(int id, uint64_t mChainHash, const unordered_map<int, Node> &nodes):
     mId(id),
+    mMChainHash(mChainHash),
     mNodes(nodes),
-    mSocketController(mNodes[id].getPort(), *this),
+    mMessageListener(getPipeFileName(), *this),
     mSessions(*this),
     mCommitCounter(0)
 {
@@ -48,7 +53,7 @@ void ReliableBroadcast::start()
             this->mIoService.run();
         });
     }
-    mSocketController.listen();
+    mMessageListener.listen();
     for (auto &thread : pool)
     {
         thread.join();
@@ -126,10 +131,18 @@ void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
             boost::asio::ip::udp::endpoint targetEndpoint(
                         boost::asio::ip::address::from_string(node.getAddress()),
                         node.getPort());
-            mSocketController.send(targetEndpoint, rawMessagePtr);
+//            mMessageListener.send(targetEndpoint, rawMessagePtr);
+            throw std::logic_error("Not implemented");
         }
     }
     processMessage(message);
+}
+
+std::string ReliableBroadcast::getPipeFileName() const
+{
+    stringstream ss;
+    ss << "/tmp/m_chains/m_chain_" << mMChainHash;
+    return ss.str();
 }
 
 ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner):

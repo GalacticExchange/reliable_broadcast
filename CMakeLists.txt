@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(broadcast)
 
+add_subdirectory(router)
 set (CMAKE_CXX_STANDARD 11)
 
 file(GLOB SOURCES src/*.cpp)

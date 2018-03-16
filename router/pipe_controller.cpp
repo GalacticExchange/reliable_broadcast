@@ -41,5 +41,6 @@ void PipeController::sendToPipe(const std::string pipeName, std::shared_ptr<Mess
         cout << pipeName + " not found" << endl;
         return;
     }
-    write(pipes[pipeName], &message, sizeof(message));
+    cout << "sending message " << endl;
+    write(pipes[pipeName], message.get(), sizeof(message.get()));
 }

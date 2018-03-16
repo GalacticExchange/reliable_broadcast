@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -pthread")
+
+set (CMAKE_CXX_STANDARD 11)
 
 project(router)
 
@@ -21,30 +22,31 @@ file(GLOB HEADERS *.h)
 file(GLOB SRC_FILES
         ../src/message.h
         ../src/message.cpp
-        ../src/internalmessage.h
-        ../src/internalmessage.cpp
-        ../src/externalmessage.h
-        ../src/externalmessage.cpp
-        ../src/sendmessage.h
-        ../src/sendmessage.cpp
-        ../src/echomessage.h
-        ../src/echomessage.cpp
-        ../src/readymessage.h
-        ../src/readymessage.cpp
-        ../src/hashmessage.h
-        ../src/hashmessage.cpp
-        ../src/session.h
-        ../src/session.cpp
-        ../src/reliablebroadcast.h
-        ../src/reliablebroadcast.cpp
-        ../src/node.h
-        ../src/node.cpp
-        ../src/messagelistener.h
-        ../src/messagelistener.cpp
+
+#        ../src/internalmessage.h
+#        ../src/internalmessage.cpp
+#        ../src/externalmessage.h
+#        ../src/externalmessage.cpp
+#        ../src/sendmessage.h
+#        ../src/sendmessage.cpp
+#        ../src/echomessage.h
+#        ../src/echomessage.cpp
+#        ../src/readymessage.h
+#        ../src/readymessage.cpp
+#        ../src/hashmessage.h
+#        ../src/hashmessage.cpp
+#        ../src/session.h
+#        ../src/session.cpp
+#        ../src/reliablebroadcast.h
+#        ../src/reliablebroadcast.cpp
+#        ../src/node.h
+#        ../src/node.cpp
+#        ../src/messagelistener.h
+#        ../src/messagelistener.cpp
         )
 
 
-set(LIBS pthread capnp kj)
+set(LIBS pthread)
 
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})

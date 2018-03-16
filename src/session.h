@@ -50,7 +50,7 @@ private:
             std::shared_ptr<const std::vector<char>> message);
     static size_t getT(size_t n);
     static size_t getEchoMessageCountTarget(size_t n, size_t t);
-    void deliver();
+    void deliver(std::shared_ptr<Message> message);
 };
 
 #endif // SESSION_H

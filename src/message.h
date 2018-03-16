@@ -46,6 +46,9 @@ public:
     uint64_t getNodeId() const;
     const std::vector<char> &getData() const;
 
+    void setNodeId(uint64_t id);
+    void setMessageType(MessageType messageType);
+
 private:
     template <class T>
     static T parse(std::vector<char>::const_iterator begin,

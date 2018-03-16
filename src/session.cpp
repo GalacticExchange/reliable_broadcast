@@ -88,7 +88,7 @@ void Session::processMessage(std::shared_ptr<Message> message)
                 bool _false = false;
                 if (mDelivered.compare_exchange_strong(_false, true))
                 {
-                    deliver();
+                    deliver(message);
                 }
             }
         }
@@ -182,9 +182,10 @@ size_t Session::getEchoMessageCountTarget(size_t n, size_t t)
     return (n + t + 1) / 2 + (n + t + 1) % 2;
 }
 
-void Session::deliver()
+void Session::deliver(std::shared_ptr<Message> message)
 {
-    throw std::logic_error("Not implemented");
+    cerr << "Delivered message with nonce " << message->getNonce() << endl;
+
 //    const size_t UPDATE_INTERVAL = 100;
 //    size_t commitCount = mOwner.mCommitCounter.fetch_add(1) + 1;
 //    if (commitCount == 1)

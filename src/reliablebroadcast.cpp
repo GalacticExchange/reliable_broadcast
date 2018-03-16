@@ -38,7 +38,8 @@ ReliableBroadcast::ReliableBroadcast(int id, uint64_t mChainHash, const unordere
     mNodes(nodes),
     mMessageListener(getPipeFileName(), *this),
     mSessions(*this),
-    mCommitCounter(0)
+    mCommitCounter(0),
+    mBroadcastSocket(mIoService)
 {
 }
 
@@ -97,7 +98,21 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 //    }
 //    cerr << " message in session #" << message->getSessionId() << endl;
 
-    throw std::logic_error("Not implemented");
+    message->setNodeId(mId);
+    message->setMessageType(messageType);
+    shared_ptr<vector<char>> buffer = make_shared<vector<char>>(message->encode());
+    mBroadcastSocket.async_send_to(boost::asio::buffer(*buffer),
+                                   boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(),
+                                                                  BROADCAST_PORT),
+                                   [buffer](const boost::system::error_code& error,
+                                   std::size_t)
+    {
+        if (error)
+        {
+            cerr << "Error on send: " << error << endl;
+        }
+    });
+    processMessage(message);
 
 //    shared_ptr<vector<char>> rawMessagePtr =
 //            make_shared<vector<char>>(move(message->compile(mId)));

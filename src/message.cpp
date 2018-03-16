@@ -33,6 +33,16 @@ const vector<char> &Message::getData() const
     return mData;
 }
 
+void Message::setNodeId(uint64_t id)
+{
+    mNodeId = id;
+}
+
+void Message::setMessageType(Message::MessageType messageType)
+{
+    mType = messageType;
+}
+
 Message::Message(uint64_t clientId,
                  uint64_t nonce,
                  uint64_t mChainHash,

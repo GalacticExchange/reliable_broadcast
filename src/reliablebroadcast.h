@@ -40,6 +40,8 @@ class ReliableBroadcast
         void removeLoop();
     };
 
+    const size_t BROADCAST_PORT = 6666;
+
     int mId;
     uint64_t mMChainHash;
     std::unordered_map<int, Node> mNodes;
@@ -49,6 +51,7 @@ class ReliableBroadcast
     ThreadSafeQueue<std::shared_ptr<std::vector<char>>> mMessageQueue;
     std::atomic<size_t> mCommitCounter;
     std::chrono::system_clock::time_point mStartTime;
+    boost::asio::ip::udp::socket mBroadcastSocket;
 
 public:
     ReliableBroadcast(int id, uint64_t mChainHash, const std::unordered_map<int, Node> &nodes);
@@ -61,7 +64,7 @@ public:
 private:
     void asyncProcessMessage();
     void processMessage(std::shared_ptr<Message> message);    
-    std::string getPipeFileName() const;    
+    std::string getPipeFileName() const;
 };
 
 #endif // RELIABLEBROADCAST_H

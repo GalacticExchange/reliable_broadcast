@@ -26,7 +26,7 @@ vector<string> PipeController::listFiles(string path) {
 }
 
 void PipeController::initPipes() {
-        vector<string> pipeNames = listFiles(FIFO_DIR);
+    vector<string> pipeNames = listFiles(FIFO_DIR);
     for (const string &name: pipeNames) {
 
         // removing path from pipe name
@@ -36,11 +36,14 @@ void PipeController::initPipes() {
     }
 }
 
-void PipeController::sendToPipe(const std::string pipeName, std::shared_ptr<Message> message) {
+void PipeController::sendToPipe(const std::string &pipeName, vector<char> bytes) {
     if (!hasPipe(pipeName)) {
-        cout << pipeName + " not found" << endl;
+        cout << "Pipe: " << pipeName + " - not found" << endl;
         return;
     }
+    cout << "sending length " << endl;
+    auto length = static_cast<uint16_t>(bytes.size());
+    write(pipes[pipeName], reinterpret_cast<char *>(&length), sizeof(length));
     cout << "sending message " << endl;
-    write(pipes[pipeName], message.get(), sizeof(message.get()));
+    write(pipes[pipeName], bytes.data(), bytes.size());
 }

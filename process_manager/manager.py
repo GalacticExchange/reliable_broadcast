@@ -2,7 +2,7 @@ import os
 import logging
 import sys
 
-FIFO_NAME = ["_test_fifo"]
+FIFO_NAME = ["_test_fifo", "12345"]
 FIFO_DIR = '/tmp/skale_fifo'
 
 logger = logging.getLogger()

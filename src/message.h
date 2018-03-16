@@ -42,6 +42,8 @@ public:
 //    virtual MessageType getType() const = 0;
     uint64_t getNonce() const;
 
+    static uint64_t parseMChain(std::vector<char> encoded);
+
 private:
     template <class T>
     static T parse(std::vector<char>::const_iterator begin,

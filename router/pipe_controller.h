@@ -29,7 +29,7 @@ public:
 
     bool hasPipe(std::string pipeName);
 
-    void sendToPipe(std::string pipeName, std::shared_ptr<Message> message);
+    void sendToPipe(const std::string &pipeName, std::vector<char> bytes);
 
 private:
     void initPipes();

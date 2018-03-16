@@ -118,3 +118,8 @@ void Message::write(vector<char>::iterator begin, size_t offset, const T &value)
          reinterpret_cast<const char*>(&value) + sizeof(T),
          &*begin + offset);
 }
+
+uint64_t Message::parseMChain(std::vector<char> encoded){
+    return parse<typeof(Message::mMChainHash)>(encoded.begin(), encoded.end(), 0);
+
+}

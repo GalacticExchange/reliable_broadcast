@@ -26,6 +26,7 @@ private:
     void asyncWaitForData();
 //    void syncWaitForData();
     void receiveHandler(const boost::system::error_code &ec, std::size_t bytes_recvd);
+    void uint64_to_string(uint64_t value, std::string& result);
 };
 
 #endif // SOCKETCONTROLLER_H

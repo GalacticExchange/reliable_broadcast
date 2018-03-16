@@ -21,21 +21,22 @@ using std::vector;
 
 
 ReliableBroadcast::Session::Session(ReliableBroadcast &owner,
-                                    shared_ptr<InternalMessage> internalMessage):
-    Session(internalMessage->getSessionId(), owner)
+                                    shared_ptr<Message> message):
+    Session(0 /* internalMessage->getSessionId() */, owner)
 {
-    if (internalMessage->getType() == Message::MessageType::SEND)
-    {
-        shared_ptr<SendMessage> sendMessage = dynamic_pointer_cast<SendMessage>(internalMessage);
-        mMessage = sendMessage->getMessagePtr();
-        mMessageHash = calculateMessageHash(mMessage);
-    } else {
-        shared_ptr<HashMessage> hashMessage = dynamic_pointer_cast<HashMessage>(internalMessage);
-        mPendingHashMessages.push(hashMessage);
-    }
+    throw std::logic_error("Not implemented");
+//    if (internalMessage->getType() == Message::MessageType::SEND)
+//    {
+//        shared_ptr<SendMessage> sendMessage = dynamic_pointer_cast<SendMessage>(internalMessage);
+//        mMessage = sendMessage->getMessagePtr();
+//        mMessageHash = calculateMessageHash(mMessage);
+//    } else {
+//        shared_ptr<HashMessage> hashMessage = dynamic_pointer_cast<HashMessage>(internalMessage);
+//        mPendingHashMessages.push(hashMessage);
+//    }
 }
 
-void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage> message)
+void ReliableBroadcast::Session::processMessage(std::shared_ptr<Message> message)
 {
 //    cerr << "Process message ";
 //    if (message->getType() == Message::MessageType::SEND)
@@ -51,94 +52,96 @@ void ReliableBroadcast::Session::processMessage(std::shared_ptr<InternalMessage>
 //    cerr << " from " << message->getSenderId()
 //         << " in session #" << message->getSessionId() << endl;
 
-    if (message->getType() == Message::MessageType::SEND)
-    {
-        shared_ptr<SendMessage> sendMessage = dynamic_pointer_cast<SendMessage>(message);
-        bool messageWasAdded = false;
-        {
-            lock_guard<mutex> lock(mMessageMutex);
+    throw std::logic_error("Not implemented");
 
-            if(!mMessage)
-            {
-                mMessage = sendMessage->getMessagePtr();
-                mMessageHash = calculateMessageHash(mMessage);
-                messageWasAdded = true;
-            }
-        }
-        if (messageWasAdded)
-        {
-            while (!mPendingHashMessages.empty())
-            {
-                processMessage(mPendingHashMessages.front());
-                mPendingHashMessages.pop();
-            }
-        }
-        mOwner.broadcast(make_shared<EchoMessage>(mOwner.mId, mId, mMessageHash));
-    } else {
-        shared_ptr<HashMessage> hashMessage = dynamic_pointer_cast<HashMessage>(message);
-        bool process = false;
-        {
-            lock_guard<mutex> lock(mMessageMutex);
-            if (mMessage)
-            {
-                process = true;
-            } else {
-                mPendingHashMessages.push(hashMessage);
-                // cerr << "(wait)" << endl;
-            }
-        }
-        if (process)
-        {
-            if (message->getType() == Message::ECHO_MESSAGE)
-            {
-                shared_ptr<EchoMessage> echoMessage = dynamic_pointer_cast<EchoMessage>(message);
-                if (!mReadyMessageWasSent)
-                {
-                    size_t count;
-                    {
-                        lock_guard<mutex> lock(mEchoMessageCounterMutex);
-                        mEchoMessageCounter.insert(echoMessage->getSenderId());
-                        count = mEchoMessageCounter.size();
-                    }
-                    if (count >= mEchoMessageCountTarget)
-                    {
-                        bool _false = false;
-                        if (mReadyMessageWasSent.compare_exchange_strong(_false, true))
-                        {
-                            mOwner.broadcast(make_shared<ReadyMessage>(*echoMessage));
-                        }
-                    }
-                }
-            } else if (message->getType() == Message::READY) {
-                shared_ptr<ReadyMessage> readyMessage = dynamic_pointer_cast<ReadyMessage>(message);
-                if (!mDelivered)
-                {
-                    size_t count;
-                    {
-                        lock_guard<mutex> lock(mReadyMessageCounterMutex);
-                        mReadyMessageCounter.insert(readyMessage->getSenderId());
-                        count = mReadyMessageCounter.size();
-                    }
-                    if (!mReadyMessageWasSent && count > t)
-                    {
-                        bool _false = false;
-                        if (mReadyMessageWasSent.compare_exchange_strong(_false, true))
-                        {
-                            mOwner.broadcast(make_shared<ReadyMessage>(*readyMessage));
-                        }
-                    }
-                    if (!mDelivered && count > 2 * t)
-                    {
-                        bool _false = false;
-                        if (mDelivered.compare_exchange_strong(_false, true))
-                        {
-                            deliver();
-                        }
-                    }
-                }
-            }
-        }
-    }
+//    if (message->getType() == Message::MessageType::SEND)
+//    {
+//        shared_ptr<SendMessage> sendMessage = dynamic_pointer_cast<SendMessage>(message);
+//        bool messageWasAdded = false;
+//        {
+//            lock_guard<mutex> lock(mMessageMutex);
+
+//            if(!mMessage)
+//            {
+//                mMessage = sendMessage->getMessagePtr();
+//                mMessageHash = calculateMessageHash(mMessage);
+//                messageWasAdded = true;
+//            }
+//        }
+//        if (messageWasAdded)
+//        {
+//            while (!mPendingHashMessages.empty())
+//            {
+//                processMessage(mPendingHashMessages.front());
+//                mPendingHashMessages.pop();
+//            }
+//        }
+//        mOwner.broadcast(make_shared<EchoMessage>(mOwner.mId, mId, mMessageHash));
+//    } else {
+//        shared_ptr<HashMessage> hashMessage = dynamic_pointer_cast<HashMessage>(message);
+//        bool process = false;
+//        {
+//            lock_guard<mutex> lock(mMessageMutex);
+//            if (mMessage)
+//            {
+//                process = true;
+//            } else {
+//                mPendingHashMessages.push(hashMessage);
+//                // cerr << "(wait)" << endl;
+//            }
+//        }
+//        if (process)
+//        {
+//            if (message->getType() == Message::ECHO_MESSAGE)
+//            {
+//                shared_ptr<EchoMessage> echoMessage = dynamic_pointer_cast<EchoMessage>(message);
+//                if (!mReadyMessageWasSent)
+//                {
+//                    size_t count;
+//                    {
+//                        lock_guard<mutex> lock(mEchoMessageCounterMutex);
+//                        mEchoMessageCounter.insert(echoMessage->getSenderId());
+//                        count = mEchoMessageCounter.size();
+//                    }
+//                    if (count >= mEchoMessageCountTarget)
+//                    {
+//                        bool _false = false;
+//                        if (mReadyMessageWasSent.compare_exchange_strong(_false, true))
+//                        {
+//                            mOwner.broadcast(make_shared<ReadyMessage>(*echoMessage));
+//                        }
+//                    }
+//                }
+//            } else if (message->getType() == Message::READY) {
+//                shared_ptr<ReadyMessage> readyMessage = dynamic_pointer_cast<ReadyMessage>(message);
+//                if (!mDelivered)
+//                {
+//                    size_t count;
+//                    {
+//                        lock_guard<mutex> lock(mReadyMessageCounterMutex);
+//                        mReadyMessageCounter.insert(readyMessage->getSenderId());
+//                        count = mReadyMessageCounter.size();
+//                    }
+//                    if (!mReadyMessageWasSent && count > t)
+//                    {
+//                        bool _false = false;
+//                        if (mReadyMessageWasSent.compare_exchange_strong(_false, true))
+//                        {
+//                            mOwner.broadcast(make_shared<ReadyMessage>(*readyMessage));
+//                        }
+//                    }
+//                    if (!mDelivered && count > 2 * t)
+//                    {
+//                        bool _false = false;
+//                        if (mDelivered.compare_exchange_strong(_false, true))
+//                        {
+//                            deliver();
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
 }
 
 uint64_t ReliableBroadcast::Session::getId() const

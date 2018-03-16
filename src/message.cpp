@@ -1,6 +1,7 @@
 #include <memory>
 #include <vector>
 
+using std::copy;
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
@@ -12,18 +13,108 @@ using std::vector;
 #include "sendmessage.h"
 
 
-shared_ptr<Message> Message::parse(vector<char>::iterator begin, vector<char>::iterator end)
+Message::Message(uint64_t clientId,
+                 uint64_t nonce,
+                 uint64_t mChainHash,
+                 uint64_t nodeId,
+                 Message::MessageType messageType,
+                 vector<char> &&data):
+    mClientId(clientId),
+    mNonce(nonce),
+    mMChainHash(mChainHash),
+    mNodeId(nodeId),
+    mType(messageType),
+    mData(move(data))
 {
-    if (begin >= end) {
-        return nullptr;
+
+}
+
+std::vector<char> Message::encode() const
+{
+    size_t total_size = sizeof(mClientId)
+            + sizeof(mNonce)
+            + sizeof(mMChainHash)
+            + sizeof(mNodeId)
+            + 1
+            + mData.size();
+    vector<char> buffer(total_size);
+    size_t offset = 0;
+    write<typeof(mClientId)>(buffer.begin(), offset, mClientId);
+    offset += sizeof(mClientId);
+    write<typeof(mNonce)>(buffer.begin(), offset, mNonce);
+    offset += sizeof(mNonce);
+    write<typeof(mMChainHash)>(buffer.begin(), offset, mMChainHash);
+    offset += sizeof(mMChainHash);
+    write<typeof(mNodeId)>(buffer.begin(), offset, mNodeId);
+    offset += sizeof(mNodeId);
+    buffer[offset] = static_cast<char>(mType);
+    offset += 1;
+    copy(mData.begin(), mData.end(), buffer.begin() + offset);
+    return buffer;
+}
+
+shared_ptr<Message> Message::parse(
+        vector<char>::const_iterator begin,
+        vector<char>::const_iterator end)
+{
+//    uint64_t mClientId;
+//    uint64_t mNonce;
+//    uint64_t mMChainHash;
+//    uint64_t mNodeId;
+//    MessageType mType;
+//    std::vector<char> mData;
+
+    size_t total_size = sizeof(mClientId)
+            + sizeof(mNonce)
+            + sizeof(mMChainHash)
+            + sizeof(mNodeId)
+            + 1;
+
+    if (begin + total_size > end) {
+        throw std::logic_error("Buffer is too small");
     }
-    if (*begin == MessageType::SEND) {
-        return make_shared<SendMessage>(begin + 1, end);
-    } if (*begin == MessageType::ECHO_MESSAGE) {
-        return make_shared<EchoMessage>(begin + 1, end);
-    } if (*begin == MessageType::READY) {
-        return make_shared<ReadyMessage>(begin + 1, end);
-    } else {
-        return make_shared<ExternalMessage>(begin, end);
+
+    shared_ptr<Message> message = make_shared<Message>();
+    size_t offset = 0;
+    message->mClientId = parse<typeof(mClientId)>(begin, end, offset);
+    offset += sizeof(mClientId);
+    message->mNonce = parse<typeof(mNonce)>(begin, end, offset);
+    offset += sizeof(mNonce);
+    message->mMChainHash = parse<typeof(mMChainHash)>(begin, end, offset);
+    offset += sizeof(mMChainHash);
+    message->mNodeId = parse<typeof(mNodeId)>(begin, end, offset);
+    offset += sizeof(mNodeId);
+    char messageType = *(begin + offset);
+    if (messageType >= 3)
+    {
+        throw std::logic_error("Wrong value for message type");
     }
+    message->mType = static_cast<MessageType>(messageType);
+    offset += 1;
+    message->mData = vector<char>(begin + offset, end);
+
+    return message;
+}
+
+uint64_t Message::getNonce() const
+{
+    return mNonce;
+}
+
+template<class T>
+T Message::parse(vector<char>::const_iterator begin,
+                          vector<char>::const_iterator end,
+                          size_t offset)
+{
+    T value;
+    copy(&*begin + offset, &*begin + offset + sizeof(T), reinterpret_cast<char*>(&value));
+    return value;
+}
+
+template<class T>
+void Message::write(vector<char>::iterator begin, size_t offset, const T &value)
+{
+    copy(reinterpret_cast<const char*>(&value),
+         reinterpret_cast<const char*>(&value) + sizeof(T),
+         &*begin + offset);
 }

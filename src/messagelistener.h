@@ -1,31 +1,32 @@
 #ifndef MESSAGELISTENER_H
 #define MESSAGELISTENER_H
 
-
-
+#include <fstream>
+#include <memory>
 #include <string>
 
-#include "../capnproto/skale_message.capnp.h"
+#include "message.h"
 
 
 class ReliableBroadcast;
 
 class MessageListener
 {    
-    int mPipeFileDescriptor;
+//    int mPipeFileDescriptor;
 //    boost::asio::io_service mIoService;
 //    boost::asio::ip::udp::socket mSocket;
 //    const size_t MAX_LENGTH = 512;
 //    std::vector<char> mBuffer;
+    std::fstream mInputStream;
     ReliableBroadcast &mOwner;
 public:
     MessageListener(const std::string &pipeFileName, ReliableBroadcast &owner);
-    virtual ~MessageListener();
+
 //    void send(boost::asio::ip::udp::endpoint &target,
 //              std::shared_ptr<const std::vector<char>> buffer);
     void listen();
 private:
-    void onReceive(const SkaleMessage::Reader &skaleMessageReader);
+    void onReceive(std::shared_ptr<Message> message);
     void asyncWaitForData();
 };
 

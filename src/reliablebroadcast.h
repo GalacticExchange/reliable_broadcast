@@ -34,12 +34,12 @@ private:
     public:
         SessionsPool(ReliableBroadcast &owner);
         std::shared_ptr<Session> getOrCreateSession(
-                std::shared_ptr<InternalMessage> internalMessage);
+                std::shared_ptr<Message> message);
         void removeSession(uint64_t sessionId);
 
     private:
         std::shared_ptr<Session> getSession(uint64_t id) const;
-        std::shared_ptr<Session> addSession(std::shared_ptr<InternalMessage> internalMessage);
+        std::shared_ptr<Session> addSession(std::shared_ptr<Message> message);
         void remove(uint64_t sessionId);
         void removeLoop();
     };
@@ -63,7 +63,7 @@ public:
 private:
     void asyncProcessMessage();
     void processMessage(std::shared_ptr<Message> message);
-    void broadcast(std::shared_ptr<InternalMessage> message);
+    void broadcast(std::shared_ptr<Message> message);
     std::string getPipeFileName() const;
 };
 

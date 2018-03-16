@@ -13,15 +13,12 @@
 #include "message.h"
 #include "node.h"
 #include "messagelistener.h"
+#include "session.h"
 #include "threadsafequeue.h"
 
 
 class ReliableBroadcast
 {
-public:
-    class Session;
-
-private:
     class SessionsPool
     {
         const size_t REMOVE_DELAY_SEC = 10;
@@ -33,14 +30,13 @@ private:
 
     public:
         SessionsPool(ReliableBroadcast &owner);
-        std::shared_ptr<Session> getOrCreateSession(
-                std::shared_ptr<Message> message);
-        void removeSession(uint64_t sessionId);
+        std::shared_ptr<Session> getOrCreateSession(Session::Id id);
+        void removeSession(Session::Id sessionId);
 
     private:
-        std::shared_ptr<Session> getSession(uint64_t id) const;
-        std::shared_ptr<Session> addSession(std::shared_ptr<Message> message);
-        void remove(uint64_t sessionId);
+        std::shared_ptr<Session> getSession(Session::Id id) const;
+        std::shared_ptr<Session> addSession(Session::Id id);
+        void remove(Session::Id sessionId);
         void removeLoop();
     };
 
@@ -50,7 +46,7 @@ private:
     MessageListener mMessageListener;
     boost::asio::io_service mIoService;
     SessionsPool mSessions;
-    ThreadSafeQueue<std::shared_ptr<Message>> mMessageQueue;
+    ThreadSafeQueue<std::shared_ptr<std::vector<char>>> mMessageQueue;
     std::atomic<size_t> mCommitCounter;
     std::chrono::system_clock::time_point mStartTime;
 
@@ -58,13 +54,14 @@ public:
     ReliableBroadcast(int id, uint64_t mChainHash, const std::unordered_map<int, Node> &nodes);
     void start();
     void stop();
-    void postMessage(std::shared_ptr<Message> message);
+    void postMessage(std::shared_ptr<std::vector<char>> buffer);
+    size_t getNodesCount() const;
+    void broadcast(Message::MessageType messageType, std::shared_ptr<Message> message);
 
 private:
     void asyncProcessMessage();
-    void processMessage(std::shared_ptr<Message> message);
-    void broadcast(std::shared_ptr<Message> message);
-    std::string getPipeFileName() const;
+    void processMessage(std::shared_ptr<Message> message);    
+    std::string getPipeFileName() const;    
 };
 
 #endif // RELIABLEBROADCAST_H

@@ -2,7 +2,9 @@
 #define SESSION_H
 
 #include <atomic>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <unordered_set>
 
 #include <boost/uuid/sha1.hpp>
@@ -10,36 +12,39 @@
 #include "externalmessage.h"
 #include "hashmessage.h"
 #include "internalmessage.h"
-#include "reliablebroadcast.h"
 #include "sendmessage.h"
 
-class ReliableBroadcast::Session
+class ReliableBroadcast;
+
+class Session
 {
-    const uint64_t mId;
+public:
+    typedef __int128 Id;
+
+    const Id mId;
     const size_t n;
     const size_t t;
     const size_t mEchoMessageCountTarget;
     ReliableBroadcast &mOwner;
-//    std::mutex mMessageMutex;
-//    std::shared_ptr<const std::vector<char>> mMessage;
-//    std::shared_ptr<const std::vector<char>> mMessageHash;
-//    std::queue<std::shared_ptr<HashMessage>> mPendingHashMessages;
+
+
     std::mutex mEchoMessageCounterMutex;
-    std::unordered_set<int> mEchoMessageCounter;
+    std::map<std::pair<uint64_t, std::vector<char>>, size_t> mEchoMessageCounter;
     std::mutex mReadyMessageCounterMutex;
-    std::unordered_set<int> mReadyMessageCounter;
+    std::map<std::pair<uint64_t, std::vector<char>>, size_t> mReadyMessageCounter;
     std::atomic<bool> mReadyMessageWasSent;
-    std::atomic<bool> mDelivered;    
+    std::atomic<bool> mDelivered;
 
 public:
-    Session(ReliableBroadcast &owner, std::shared_ptr<Message> message);
+    Session(ReliableBroadcast &owner, Id id);
 
     void processMessage(std::shared_ptr<Message> message);
-    uint64_t getId() const;
-    static uint64_t getRandomId();
+    Id getId() const;
+    static Id getRandomId();
+    static Id getId(std::shared_ptr<Message> message);
 
 private:
-    Session(uint64_t mId, ReliableBroadcast &owner);
+    Session(Id mId, ReliableBroadcast &owner);
 
     static std::shared_ptr<std::vector<char>> calculateMessageHash(
             std::shared_ptr<const std::vector<char>> message);

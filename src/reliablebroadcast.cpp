@@ -60,41 +60,29 @@ void ReliableBroadcast::start()
     }
 }
 
-void ReliableBroadcast::postMessage(std::shared_ptr<Message> message)
+void ReliableBroadcast::postMessage(std::shared_ptr<vector<char>> buffer)
 {
-    mMessageQueue.push(message);
+    mMessageQueue.push(buffer);
 }
 
 void ReliableBroadcast::asyncProcessMessage()
 {
     mIoService.post([this]()
     {
-        shared_ptr<Message> message = mMessageQueue.pop();
+        shared_ptr<vector<char>> buffer = mMessageQueue.pop();
         asyncProcessMessage();
+        shared_ptr<Message> message = Message::parse(buffer->begin(), buffer->end());
         processMessage(message);
     });
 }
 
 void ReliableBroadcast::processMessage(shared_ptr<Message> message)
 {
-    throw std::logic_error("Unimplemented");
-//    if (message->getType() == Message::MessageType::MESSAGE)
-//    {
-//        shared_ptr<ExternalMessage> externalMessage =
-//                dynamic_pointer_cast<ExternalMessage>(message);
-
-//        shared_ptr<SendMessage> sendMessage = make_shared<SendMessage>(mId, externalMessage);
-//        broadcast(sendMessage);
-//    } else {
-//        shared_ptr<InternalMessage> internalMessage =
-//                dynamic_pointer_cast<InternalMessage>(message);
-
-//        shared_ptr<Session> session = mSessions.getOrCreateSession(internalMessage);
-//        session->processMessage(internalMessage);
-//    }
+    shared_ptr<Session> session = mSessions.getOrCreateSession(Session::getId(message));
+    session->processMessage(message);
 }
 
-void ReliableBroadcast::broadcast(std::shared_ptr<Message> message)
+void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<Message> message)
 {
 //    cerr << "\tBrodcast ";
 //    if (message->getType() == Message::MessageType::SEND)
@@ -158,25 +146,24 @@ ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner):
 
 }
 
-shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::SessionsPool::addSession(shared_ptr<Message> message)
+shared_ptr<Session>
+ReliableBroadcast::SessionsPool::addSession(Session::Id id)
 {
-    throw std::logic_error("Not implemented");
-//    shared_ptr<ReliableBroadcast::Session> session = make_shared<Session>(mOwner, message);
-//    {
-//        unique_lock<shared_mutex> lock(mSessionsMutex);
-//        auto session_ptr = mSessions.find(message->getSessionId());
-//        if (session_ptr == mSessions.end())
-//        {
-//            mSessions[session->getId()] = session;
-//        } else {
-//            session = session_ptr->second;
-//        }
-//    }
-//    return session;
+    shared_ptr<Session> session = make_shared<Session>(mOwner, id);
+    {
+        unique_lock<shared_mutex> lock(mSessionsMutex);
+        auto session_ptr = mSessions.find(id);
+        if (session_ptr == mSessions.end())
+        {
+            mSessions[session->getId()] = session;
+        } else {
+            session = session_ptr->second;
+        }
+    }
+    return session;
 }
 
-void ReliableBroadcast::SessionsPool::remove(uint64_t sessionId)
+void ReliableBroadcast::SessionsPool::remove(Session::Id sessionId)
 {
 //    cerr << "Remove session #" << sessionId << endl;
     unique_lock<shared_mutex> lock(mSessionsMutex);
@@ -193,11 +180,11 @@ void ReliableBroadcast::SessionsPool::removeLoop()
     }
 }
 
-shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::SessionsPool::getSession(uint64_t id) const
+shared_ptr<Session>
+ReliableBroadcast::SessionsPool::getSession(Session::Id id) const
 {
     shared_lock<shared_mutex> lock(mSessionsMutex);
-    shared_ptr<ReliableBroadcast::Session> session = nullptr;
+    shared_ptr<Session> session = nullptr;
     auto sessionPtr = mSessions.find(id);
     if (sessionPtr != mSessions.end()) {
         session = sessionPtr->second;
@@ -205,21 +192,25 @@ ReliableBroadcast::SessionsPool::getSession(uint64_t id) const
     return session;
 }
 
-shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::SessionsPool::getOrCreateSession(shared_ptr<Message> message)
-{
-    throw std::logic_error("Not implemented");
-//    shared_ptr<ReliableBroadcast::Session> session = getSession(message->getSessionId());
-//    if (!session)
-//    {
-//        session = addSession(message);
-//    }
-//    return session;
+shared_ptr<Session>
+ReliableBroadcast::SessionsPool::getOrCreateSession(Session::Id id)
+{    
+    shared_ptr<Session> session = getSession(id);
+    if (!session)
+    {
+        session = addSession(id);
+    }
+    return session;
 }
 
-void ReliableBroadcast::SessionsPool::removeSession(uint64_t sessionId)
+void ReliableBroadcast::SessionsPool::removeSession(Session::Id sessionId)
 {
     mRemoveQueue.push(make_pair(
                           sessionId,
                           system_clock::now() + std::chrono::seconds(REMOVE_DELAY_SEC)));
+}
+
+size_t ReliableBroadcast::getNodesCount() const
+{
+    return mNodes.size();
 }

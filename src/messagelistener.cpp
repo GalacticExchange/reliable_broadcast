@@ -11,6 +11,7 @@ using std::cout;
 using std::endl;
 using std::ifstream;
 using std::ios;
+using std::make_shared;
 using std::shared_ptr;
 using std::string;
 using std::stringstream;
@@ -65,17 +66,16 @@ void MessageListener::listen()
     {
         uint16_t length;
         mInputStream.read(reinterpret_cast<char*>(&length), sizeof(length));
-        vector<char> buffer(length);
-        mInputStream.read(&*buffer.begin(), length);
+        shared_ptr<vector<char>> buffer = make_shared<vector<char>>(length);
+        mInputStream.read(&*buffer->begin(), length);
 
-        shared_ptr<Message> message = Message::parse(buffer.begin(), buffer.end());
-        onReceive(message);
+        onReceive(buffer);
     }
 }
 
-void MessageListener::onReceive(shared_ptr<Message> message)
+void MessageListener::onReceive(shared_ptr<vector<char>> buffer)
 {
-    cerr << "Received message with nonce " << message->getNonce() << endl;
+//    cerr << "Received message with nonce " << message->getNonce() << endl;
 
 //    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
 ////    cerr << "Received data: [";
@@ -87,7 +87,8 @@ void MessageListener::onReceive(shared_ptr<Message> message)
 ////    }
 //////    cerr << "]" << endl;
 ////    cerr << "..." << endl;
-//    mOwner.postMessage(message);
+
+    mOwner.postMessage(buffer);
 }
 
 //void MessageListener::asyncWaitForData()

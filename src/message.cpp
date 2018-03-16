@@ -13,6 +13,26 @@ using std::vector;
 #include "sendmessage.h"
 
 
+uint64_t Message::getClientId() const
+{
+    return mClientId;
+}
+
+uint64_t Message::getMChainHash() const
+{
+    return mMChainHash;
+}
+
+uint64_t Message::getNodeId() const
+{
+    return mNodeId;
+}
+
+const vector<char> &Message::getData() const
+{
+    return mData;
+}
+
 Message::Message(uint64_t clientId,
                  uint64_t nonce,
                  uint64_t mChainHash,
@@ -94,6 +114,11 @@ shared_ptr<Message> Message::parse(
     message->mData = vector<char>(begin + offset, end);
 
     return message;
+}
+
+Message::MessageType Message::getType() const
+{
+    return mType;
 }
 
 uint64_t Message::getNonce() const

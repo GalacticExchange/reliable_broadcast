@@ -26,7 +26,7 @@ public:
 //              std::shared_ptr<const std::vector<char>> buffer);
     void listen();
 private:
-    void onReceive(std::shared_ptr<Message> message);
+    void onReceive(std::shared_ptr<vector<char>> buffer);
     void asyncWaitForData();
 };
 

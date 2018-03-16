@@ -39,8 +39,12 @@ public:
             std::vector<char>::const_iterator begin,
             std::vector<char>::const_iterator end);
 
-//    virtual MessageType getType() const = 0;
+    MessageType getType() const;
     uint64_t getNonce() const;
+    uint64_t getClientId() const;
+    uint64_t getMChainHash() const;
+    uint64_t getNodeId() const;
+    const std::vector<char> &getData() const;
 
 private:
     template <class T>

@@ -1,27 +1,24 @@
 #ifndef RELIABLEBROADCAST_H
 #define RELIABLEBROADCAST_H
 
+#include "internalmessage.h"
+#include "message.h"
+#include "node.h"
+#include "messagelistener.h"
+#include "session.h"
+#include "threadsafequeue.h"
+
+#include <boost/asio.hpp>
+#include <boost/thread/pthread/shared_mutex.hpp>
+
 #include <atomic>
 #include <thread>
 #include <unordered_map>
 #include <vector>
 
-#include <boost/asio.hpp>
-#include <boost/thread/pthread/shared_mutex.hpp>
-
-#include "internalmessage.h"
-#include "message.h"
-#include "node.h"
-#include "messagelistener.h"
-#include "threadsafequeue.h"
-
 
 class ReliableBroadcast
 {
-public:
-    class Session;
-
-private:
     class SessionsPool
     {
         const size_t REMOVE_DELAY_SEC = 10;
@@ -33,14 +30,13 @@ private:
 
     public:
         SessionsPool(ReliableBroadcast &owner);
-        std::shared_ptr<Session> getOrCreateSession(
-                std::shared_ptr<InternalMessage> internalMessage);
-        void removeSession(uint64_t sessionId);
+        std::shared_ptr<Session> getOrCreateSession(Session::Id id);
+        void removeSession(Session::Id sessionId);
 
     private:
-        std::shared_ptr<Session> getSession(uint64_t id) const;
-        std::shared_ptr<Session> addSession(std::shared_ptr<InternalMessage> internalMessage);
-        void remove(uint64_t sessionId);
+        std::shared_ptr<Session> getSession(Session::Id id) const;
+        std::shared_ptr<Session> addSession(Session::Id id);
+        void remove(Session::Id id);
         void removeLoop();
     };
 
@@ -59,6 +55,7 @@ public:
     void start();
     void stop();
     void postMessage(std::shared_ptr<Message> message);
+    size_t getNodesCount() const;
 
 private:
     void asyncProcessMessage();

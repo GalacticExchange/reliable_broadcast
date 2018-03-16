@@ -1,29 +1,34 @@
 #ifndef SESSION_H
 #define SESSION_H
 
-#include <atomic>
-#include <memory>
-#include <unordered_set>
+#include "message.h"
 
 #include <boost/uuid/sha1.hpp>
 
-#include "externalmessage.h"
-#include "hashmessage.h"
-#include "internalmessage.h"
-#include "reliablebroadcast.h"
-#include "sendmessage.h"
+#include <atomic>
+#include <memory>
+#include <mutex>
+#include <unordered_set>
 
-class ReliableBroadcast::Session
+
+class ReliableBroadcast;
+class Message;
+
+class Session
 {
-    const uint64_t mId;
+public:
+    typedef __int128 Id;
+
+private:
+    const Id mId;
     const size_t n;
     const size_t t;
     const size_t mEchoMessageCountTarget;
     ReliableBroadcast &mOwner;
-    std::mutex mMessageMutex;
-    std::shared_ptr<const std::vector<char>> mMessage;
-    std::shared_ptr<const std::vector<char>> mMessageHash;
-    std::queue<std::shared_ptr<HashMessage>> mPendingHashMessages;
+//    std::mutex mMessageMutex;
+//    std::shared_ptr<const std::vector<char>> mMessage;
+//    std::shared_ptr<const std::vector<char>> mMessageHash;
+//    std::queue<std::shared_ptr<HashMessage>> mPendingHashMessages;
     std::mutex mEchoMessageCounterMutex;
     std::unordered_set<int> mEchoMessageCounter;
     std::mutex mReadyMessageCounterMutex;
@@ -32,14 +37,15 @@ class ReliableBroadcast::Session
     std::atomic<bool> mDelivered;    
 
 public:
-    Session(ReliableBroadcast &owner, std::shared_ptr<InternalMessage> internalMessage);
+    Session(ReliableBroadcast &owner, Id id);
+    Session(ReliableBroadcast &owner);
 
-    void processMessage(std::shared_ptr<InternalMessage> message);
-    uint64_t getId() const;
-    static uint64_t getRandomId();
+    void processMessage(std::shared_ptr<Message> message);
+    Id getId() const;
+    static Id getRandomId();
 
 private:
-    Session(uint64_t mId, ReliableBroadcast &owner);
+    Session(Id mId, ReliableBroadcast &owner);
 
     static std::shared_ptr<std::vector<char>> calculateMessageHash(
             std::shared_ptr<const std::vector<char>> message);

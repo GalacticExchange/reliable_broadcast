@@ -1,5 +1,16 @@
+#include "../capnproto/internal_message.capnp.h"
+#include "message.h"
+#include "messagelistener.h"
+#include "reliablebroadcast.h"
+
+#include <boost/asio.hpp>
+#include <capnp/serialize.h>
+
+using boost::asio::ip::udp;
+
 #include <fcntl.h>
 
+#include <sstream>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -8,16 +19,9 @@ using std::cerr;
 using std::endl;
 using std::ifstream;
 using std::shared_ptr;
-
-#include <boost/asio.hpp>
-#include <capnp/serialize.h>
-
-using boost::asio::ip::udp;
-
-#include "../capnproto/skale_message.capnp.h"
-#include "message.h"
-#include "messagelistener.h"
-#include "reliablebroadcast.h"
+using std::string;
+using std::stringstream;
+using std::vector;
 
 
 MessageListener::MessageListener(const std::string &pipeFileName, ReliableBroadcast &owner):
@@ -32,7 +36,12 @@ MessageListener::MessageListener(const std::string &pipeFileName, ReliableBroadc
     {
         mPipeFileDescriptor = open(pipeFileName.c_str(), O_RDWR);
     } else {
-        throw std::logic_error("Pipe was not found");
+        stringstream ss;
+        ss << "Pipe " << pipeFileName << " was not found" << endl;
+        string errorMessage;
+        getline(ss, errorMessage);
+
+        throw std::logic_error(errorMessage);
     }
 }
 
@@ -60,27 +69,63 @@ MessageListener::~MessageListener()
 
 void MessageListener::listen()
 {
+    vector<capnp::StreamFdMessageReader> messages;
+    vector<InternalMessage::Reader> readers;
+    capnp::StreamFdMessageReader message(mPipeFileDescriptor);
     while (true)
     {
-        capnp::StreamFdMessageReader message(mPipeFileDescriptor);
-        SkaleMessage::Reader skaleMessageReader = message.getRoot<SkaleMessage>();
-        onReceive(skaleMessageReader);
+        try
+        {
+
+            InternalMessage::Reader reader = message.getRoot<InternalMessage>();
+
+//            messages.resize(messages.size() + 1);
+
+//            readers.emplace_back(reader);
+
+//            for (auto &r : readers)
+//            {
+//                cerr << ' ' << r.getNonce();
+//            }
+//            cerr << endl;
+
+            cerr << reader.getNonce() << endl;
+
+//            messages.emplace_back(std::move(capnp::StreamFdMessageReader(mPipeFileDescriptor)));
+
+//            bool first = true;
+//            for (auto &message : messages)
+//            {
+//                if (first) first = false;
+//                else cerr << ", ";
+//                InternalMessage::Reader internalMessageReader = message.getRoot<InternalMessage>();
+//                cerr << internalMessageReader.getNonce();
+//            }
+//            cerr << endl;
+
+//            InternalMessage::Reader internalMessageReader = message.getRoot<InternalMessage>();
+//            InternalMessage::Reader internalMessageReader2 = message.getRoot<InternalMessage>();
+//            cerr << internalMessageReader.getNonce() << ' ' << internalMessageReader2.getNonce() << endl;
+//            onReceive(internalMessageReader);
+        } catch(...) {
+            cerr << "Can't parse message" << endl;
+        }
     }
 }
 
-void MessageListener::onReceive(const SkaleMessage::Reader &skaleMessageReader)
+void MessageListener::onReceive(InternalMessage &&internalMessage)
 {
-    cerr << "Received message with nonce " << skaleMessageReader.getNonce() << endl;
-//    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
-////    cerr << "Received data: [";
-//////    for (size_t i = 0; i < length; ++i)
-////    for (size_t i = 0; i < 5; ++i)
-////    {
-////        if (i) cerr << ", ";
-////        cerr << (int) mBuffer[i];
-////    }
-//////    cerr << "]" << endl;
-////    cerr << "..." << endl;
+//    cerr << "Received message with nonce " << skaleMessageReader.getNonce() << endl;
+//    shared_ptr<Message> message = make_shared<Message>(move(internalMessage));
+//////    cerr << "Received data: [";
+////////    for (size_t i = 0; i < length; ++i)
+//////    for (size_t i = 0; i < 5; ++i)
+//////    {
+//////        if (i) cerr << ", ";
+//////        cerr << (int) mBuffer[i];
+//////    }
+////////    cerr << "]" << endl;
+//////    cerr << "..." << endl;
 //    mOwner.postMessage(message);
 }
 

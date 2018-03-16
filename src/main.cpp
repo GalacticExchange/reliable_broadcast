@@ -16,29 +16,29 @@ using namespace std;
 
 int main()
 {
-//    thread sender([](){
-//        int fd = open("/tmp/m_chains/m_chain_5", O_WRONLY);
+    thread sender([](){
+        int fd = open("/tmp/m_chains/m_chain_5", O_WRONLY);
 
-//        for (int i = 0;; ++i)
-//        {
-//            ::capnp::MallocMessageBuilder message;
-//            SkaleMessage::Builder skaleMessageBuilder = message.initRoot<SkaleMessage>();
-//            skaleMessageBuilder.setClientId(5);
-//            skaleMessageBuilder.setMchainHash(555);
-//            skaleMessageBuilder.setNonce(i);
+        for (int i = 0;; ++i)
+        {
+            ::capnp::MallocMessageBuilder message;
+            SkaleMessage::Builder skaleMessageBuilder = message.initRoot<SkaleMessage>();
+            skaleMessageBuilder.setClientId(5);
+            skaleMessageBuilder.setMchainHash(555);
+            skaleMessageBuilder.setNonce(i);
 
-//            capnp::byte buffer[5];
-//            for (size_t j = 0; j < 5; ++j)
-//            {
-//                buffer[j] = 'a' + rand() % ('z' - 'a' + 1);
-//            }
-//            skaleMessageBuilder.setMessage(capnp::Data::Reader(buffer, 5));
+            capnp::byte buffer[5];
+            for (size_t j = 0; j < 5; ++j)
+            {
+                buffer[j] = 'a' + rand() % ('z' - 'a' + 1);
+            }
+            skaleMessageBuilder.setMessage(capnp::Data::Reader(buffer, 5));
 
-//            capnp::writeMessageToFd(fd, message);
+            capnp::writeMessageToFd(fd, message);
 
-//            sleep(1);
-//        }
-//    });
+            sleep(1);
+        }
+    });
 
     srand(clock());
 

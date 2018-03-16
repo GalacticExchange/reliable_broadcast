@@ -1,3 +1,14 @@
+#include "externalmessage.h"
+#include "reliablebroadcast.h"
+#include "session.h"
+
+#include <boost/thread/locks.hpp>
+#include <boost/thread/pthread/shared_mutex.hpp>
+
+using boost::shared_lock;
+using boost::shared_mutex;
+using boost::unique_lock;
+
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -21,16 +32,6 @@ using std::thread;
 using std::unordered_map;
 using std::vector;
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/pthread/shared_mutex.hpp>
-
-using boost::shared_lock;
-using boost::shared_mutex;
-using boost::unique_lock;
-
-#include "externalmessage.h"
-#include "reliablebroadcast.h"
-#include "session.h"
 
 ReliableBroadcast::ReliableBroadcast(int id, uint64_t mChainHash, const unordered_map<int, Node> &nodes):
     mId(id),
@@ -65,6 +66,11 @@ void ReliableBroadcast::postMessage(std::shared_ptr<Message> message)
     mMessageQueue.push(message);
 }
 
+size_t ReliableBroadcast::getNodesCount() const
+{
+    return mNodes.size();
+}
+
 void ReliableBroadcast::asyncProcessMessage()
 {
     mIoService.post([this]()
@@ -77,65 +83,67 @@ void ReliableBroadcast::asyncProcessMessage()
 
 void ReliableBroadcast::processMessage(shared_ptr<Message> message)
 {
-    if (message->getType() == Message::MessageType::MESSAGE)
-    {
-        shared_ptr<ExternalMessage> externalMessage =
-                dynamic_pointer_cast<ExternalMessage>(message);
+    throw std::logic_error("Unimplemented");
+//    if (message->getType() == Message::MessageType::MESSAGE)
+//    {
+//        shared_ptr<ExternalMessage> externalMessage =
+//                dynamic_pointer_cast<ExternalMessage>(message);
 
-        shared_ptr<SendMessage> sendMessage = make_shared<SendMessage>(mId, externalMessage);
-        broadcast(sendMessage);
-    } else {
-        shared_ptr<InternalMessage> internalMessage =
-                dynamic_pointer_cast<InternalMessage>(message);
+//        shared_ptr<SendMessage> sendMessage = make_shared<SendMessage>(mId, externalMessage);
+//        broadcast(sendMessage);
+//    } else {
+//        shared_ptr<InternalMessage> internalMessage =
+//                dynamic_pointer_cast<InternalMessage>(message);
 
-        shared_ptr<Session> session = mSessions.getOrCreateSession(internalMessage);
-        session->processMessage(internalMessage);
-    }
+//        shared_ptr<Session> session = mSessions.getOrCreateSession(internalMessage);
+//        session->processMessage(internalMessage);
+//    }
 }
 
 void ReliableBroadcast::broadcast(std::shared_ptr<InternalMessage> message)
 {
-//    cerr << "\tBrodcast ";
-//    if (message->getType() == Message::MessageType::SEND)
-//    {
-//        cerr << "SEND";
-//    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
-//        cerr << "ECHO";
-//    } else if (message->getType() == Message::MessageType::READY) {
-//        cerr << "READY";
-//    } else {
-//        cerr << "UNKNOWN";
-//    }
-//    cerr << " message in session #" << message->getSessionId() << endl;
+    throw std::logic_error("Unimplemented");
+////    cerr << "\tBrodcast ";
+////    if (message->getType() == Message::MessageType::SEND)
+////    {
+////        cerr << "SEND";
+////    } else if (message->getType() == Message::MessageType::ECHO_MESSAGE) {
+////        cerr << "ECHO";
+////    } else if (message->getType() == Message::MessageType::READY) {
+////        cerr << "READY";
+////    } else {
+////        cerr << "UNKNOWN";
+////    }
+////    cerr << " message in session #" << message->getSessionId() << endl;
 
-    shared_ptr<vector<char>> rawMessagePtr =
-            make_shared<vector<char>>(move(message->compile(mId)));
-//    cerr << "Going to brodcast message: [";
-//    bool first = true;
-//    for (char byte : *rawMessagePtr)
+//    shared_ptr<vector<char>> rawMessagePtr =
+//            make_shared<vector<char>>(move(message->compile(mId)));
+////    cerr << "Going to brodcast message: [";
+////    bool first = true;
+////    for (char byte : *rawMessagePtr)
+////    {
+////        if (first)
+////        {
+////            first = false;
+////        } else {
+////            cerr <<  ", ";
+////        }
+////        cerr << static_cast<int>(byte);
+////    }
+////    cerr << "]" << endl;
+//    for (auto node_ptr : mNodes)
 //    {
-//        if (first)
+//        if (node_ptr.first != mId)
 //        {
-//            first = false;
-//        } else {
-//            cerr <<  ", ";
+//            const Node &node = node_ptr.second;
+//            boost::asio::ip::udp::endpoint targetEndpoint(
+//                        boost::asio::ip::address::from_string(node.getAddress()),
+//                        node.getPort());
+////            mMessageListener.send(targetEndpoint, rawMessagePtr);
+//            throw std::logic_error("Not implemented");
 //        }
-//        cerr << static_cast<int>(byte);
 //    }
-//    cerr << "]" << endl;
-    for (auto node_ptr : mNodes)
-    {
-        if (node_ptr.first != mId)
-        {
-            const Node &node = node_ptr.second;
-            boost::asio::ip::udp::endpoint targetEndpoint(
-                        boost::asio::ip::address::from_string(node.getAddress()),
-                        node.getPort());
-//            mMessageListener.send(targetEndpoint, rawMessagePtr);
-            throw std::logic_error("Not implemented");
-        }
-    }
-    processMessage(message);
+//    processMessage(message);
 }
 
 std::string ReliableBroadcast::getPipeFileName() const
@@ -155,13 +163,13 @@ ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner):
 
 }
 
-shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::SessionsPool::addSession(shared_ptr<InternalMessage> internalMessage)
+shared_ptr<Session>
+ReliableBroadcast::SessionsPool::addSession(Session::Id id)
 {
-    shared_ptr<ReliableBroadcast::Session> session = make_shared<Session>(mOwner, internalMessage);
+    shared_ptr<Session> session = make_shared<Session>(mOwner, id);
     {
         unique_lock<shared_mutex> lock(mSessionsMutex);
-        auto session_ptr = mSessions.find(internalMessage->getSessionId());
+        auto session_ptr = mSessions.find(id);
         if (session_ptr == mSessions.end())
         {
             mSessions[session->getId()] = session;
@@ -172,7 +180,7 @@ ReliableBroadcast::SessionsPool::addSession(shared_ptr<InternalMessage> internal
     return session;
 }
 
-void ReliableBroadcast::SessionsPool::remove(uint64_t sessionId)
+void ReliableBroadcast::SessionsPool::remove(Session::Id sessionId)
 {
 //    cerr << "Remove session #" << sessionId << endl;
     unique_lock<shared_mutex> lock(mSessionsMutex);
@@ -189,11 +197,11 @@ void ReliableBroadcast::SessionsPool::removeLoop()
     }
 }
 
-shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::SessionsPool::getSession(uint64_t id) const
+shared_ptr<Session>
+ReliableBroadcast::SessionsPool::getSession(Session::Id id) const
 {
     shared_lock<shared_mutex> lock(mSessionsMutex);
-    shared_ptr<ReliableBroadcast::Session> session = nullptr;
+    shared_ptr<Session> session = nullptr;
     auto sessionPtr = mSessions.find(id);
     if (sessionPtr != mSessions.end()) {
         session = sessionPtr->second;
@@ -201,18 +209,18 @@ ReliableBroadcast::SessionsPool::getSession(uint64_t id) const
     return session;
 }
 
-shared_ptr<ReliableBroadcast::Session>
-ReliableBroadcast::SessionsPool::getOrCreateSession(shared_ptr<InternalMessage> internalMessage)
+shared_ptr<Session>
+ReliableBroadcast::SessionsPool::getOrCreateSession(Session::Id id)
 {
-    shared_ptr<ReliableBroadcast::Session> session = getSession(internalMessage->getSessionId());
+    shared_ptr<Session> session = getSession(id);
     if (!session)
     {
-        session = addSession(internalMessage);
+        session = addSession(id);
     }
     return session;
 }
 
-void ReliableBroadcast::SessionsPool::removeSession(uint64_t sessionId)
+void ReliableBroadcast::SessionsPool::removeSession(Session::Id sessionId)
 {
     mRemoveQueue.push(make_pair(
                           sessionId,

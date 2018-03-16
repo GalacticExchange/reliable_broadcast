@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "../capnproto/skale_message.capnp.h"
+#include "../capnproto/internal_message.capnp.h"
 
 
 class ReliableBroadcast;
@@ -25,7 +25,7 @@ public:
 //              std::shared_ptr<const std::vector<char>> buffer);
     void listen();
 private:
-    void onReceive(const SkaleMessage::Reader &skaleMessageReader);
+    void onReceive(InternalMessage &&internalMessage);
     void asyncWaitForData();
 };
 

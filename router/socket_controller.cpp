@@ -43,15 +43,18 @@ void SocketController::onReceive(size_t length) {
     std::cout << "Received message length: " << length << endl;
 
     // todo process message to mChain
-    std::shared_ptr<const std::vector<char>> mMessage = make_shared<vector<char>>(
-            *mBuffer.begin() ? mBuffer.begin() : mBuffer.begin() + 1, mBuffer.begin() + length);
+//    std::shared_ptr<const std::vector<char>> mMessage = make_shared<vector<char>>(
+//            *mBuffer.begin() ? mBuffer.begin() : mBuffer.begin() + 1, mBuffer.begin() + length);
 
-    std::vector<char> msg = *mMessage;
-    std::cout << msg.data() << endl;
 
-    std::cout << pipeController.hasPipe(msg.data());
-//    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
-//    mOwner.postMessage(message);
+//    std::vector<char> msg = *mMessage;
+//    std::cout << msg.data() << endl;
+//    std::cout << pipeController.hasPipe(msg.data());
+
+    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
+    //todo parse mChain name  (which is pipe name too)
+    pipeController.sendToPipe("_test_fifo", message);
+
 }
 
 

@@ -7,34 +7,24 @@ using namespace std;
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
-#include <capnp/message.h>
-#include <capnp/serialize.h>
 
-#include "../capnproto/skale_message.capnp.h"
 #include "reliablebroadcast.h"
 
 
 int main()
 {
 //    thread sender([](){
-//        int fd = open("/tmp/m_chains/m_chain_5", O_WRONLY);
+//        ofstream os("/tmp/m_chains/m_chain_5", ios::binary);
 
 //        for (int i = 0;; ++i)
 //        {
-//            ::capnp::MallocMessageBuilder message;
-//            SkaleMessage::Builder skaleMessageBuilder = message.initRoot<SkaleMessage>();
-//            skaleMessageBuilder.setClientId(5);
-//            skaleMessageBuilder.setMchainHash(555);
-//            skaleMessageBuilder.setNonce(i);
+//            Message message(i, i, i, i, Message::MessageType::SEND, vector<char>());
+//            vector<char> buffer = message.encode();
 
-//            capnp::byte buffer[5];
-//            for (size_t j = 0; j < 5; ++j)
-//            {
-//                buffer[j] = 'a' + rand() % ('z' - 'a' + 1);
-//            }
-//            skaleMessageBuilder.setMessage(capnp::Data::Reader(buffer, 5));
-
-//            capnp::writeMessageToFd(fd, message);
+//            uint16_t length = buffer.size();
+//            os.write(reinterpret_cast<char*>(&length), sizeof(length));
+//            os.write(&*buffer.begin(), buffer.size());
+//            os.flush();
 
 //            sleep(1);
 //        }

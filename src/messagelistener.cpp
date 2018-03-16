@@ -3,24 +3,29 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <sstream>
+#include <vector>
 
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::ifstream;
+using std::ios;
 using std::shared_ptr;
+using std::string;
+using std::stringstream;
+using std::vector;
 
 #include <boost/asio.hpp>
-#include <capnp/serialize.h>
 
 using boost::asio::ip::udp;
 
-#include "../capnproto/skale_message.capnp.h"
 #include "message.h"
 #include "messagelistener.h"
 #include "reliablebroadcast.h"
 
 
-MessageListener::MessageListener(const std::string &pipeFileName, ReliableBroadcast &owner):
+MessageListener::MessageListener(const std::string &pipeFileName, ReliableBroadcast &owner):    
     mOwner(owner)
 {
     bool fileExists;
@@ -30,17 +35,13 @@ MessageListener::MessageListener(const std::string &pipeFileName, ReliableBroadc
     }
     if (fileExists)
     {
-        mPipeFileDescriptor = open(pipeFileName.c_str(), O_RDWR);
+        mInputStream.open(pipeFileName, ios::in | ios::out | ios::binary);
     } else {
-        throw std::logic_error("Pipe was not found");
-    }
-}
-
-MessageListener::~MessageListener()
-{
-    if (mPipeFileDescriptor)
-    {
-        close(mPipeFileDescriptor);
+        stringstream ss;
+        ss << "Pipe " << pipeFileName << " was not found" << endl;
+        string errorMessage;
+        getline(ss, errorMessage);
+        throw std::logic_error(errorMessage);
     }
 }
 
@@ -62,15 +63,20 @@ void MessageListener::listen()
 {
     while (true)
     {
-        capnp::StreamFdMessageReader message(mPipeFileDescriptor);
-        SkaleMessage::Reader skaleMessageReader = message.getRoot<SkaleMessage>();
-        onReceive(skaleMessageReader);
+        uint16_t length;
+        mInputStream.read(reinterpret_cast<char*>(&length), sizeof(length));
+        vector<char> buffer(length);
+        mInputStream.read(&*buffer.begin(), length);
+
+        shared_ptr<Message> message = Message::parse(buffer.begin(), buffer.end());
+        onReceive(message);
     }
 }
 
-void MessageListener::onReceive(const SkaleMessage::Reader &skaleMessageReader)
+void MessageListener::onReceive(shared_ptr<Message> message)
 {
-    cerr << "Received message with nonce " << skaleMessageReader.getNonce() << endl;
+    cerr << "Received message with nonce " << message->getNonce() << endl;
+
 //    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
 ////    cerr << "Received data: [";
 //////    for (size_t i = 0; i < length; ++i)

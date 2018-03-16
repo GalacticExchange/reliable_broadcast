@@ -20,10 +20,10 @@ class ReliableBroadcast::Session
     const size_t t;
     const size_t mEchoMessageCountTarget;
     ReliableBroadcast &mOwner;
-    std::mutex mMessageMutex;
-    std::shared_ptr<const std::vector<char>> mMessage;
-    std::shared_ptr<const std::vector<char>> mMessageHash;
-    std::queue<std::shared_ptr<HashMessage>> mPendingHashMessages;
+//    std::mutex mMessageMutex;
+//    std::shared_ptr<const std::vector<char>> mMessage;
+//    std::shared_ptr<const std::vector<char>> mMessageHash;
+//    std::queue<std::shared_ptr<HashMessage>> mPendingHashMessages;
     std::mutex mEchoMessageCounterMutex;
     std::unordered_set<int> mEchoMessageCounter;
     std::mutex mReadyMessageCounterMutex;
@@ -32,9 +32,9 @@ class ReliableBroadcast::Session
     std::atomic<bool> mDelivered;    
 
 public:
-    Session(ReliableBroadcast &owner, std::shared_ptr<InternalMessage> internalMessage);
+    Session(ReliableBroadcast &owner, std::shared_ptr<Message> message);
 
-    void processMessage(std::shared_ptr<InternalMessage> message);
+    void processMessage(std::shared_ptr<Message> message);
     uint64_t getId() const;
     static uint64_t getRandomId();
 

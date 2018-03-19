@@ -46,12 +46,17 @@ void SocketController::onReceive(size_t length) {
     std::shared_ptr<const std::vector<char>> mMessage = make_shared<vector<char>>(
             *mBuffer.begin() ? mBuffer.begin() : mBuffer.begin() + 1, mBuffer.begin() + length);
 
-    std::vector<char> msg = *mMessage;
-    std::cout << msg.data() << endl;
+    vector<char> bytes = *mMessage;
 
-    std::cout << pipeController.hasPipe(msg.data());
-//    shared_ptr<Message> message = Message::parse(mBuffer.begin(), mBuffer.begin() + length);
-//    mOwner.postMessage(message);
+//    Message message(1, 150, 3, 4, Message::MessageType::SEND, vector<char>());
+//
+//    vector<char> bytes = message.encode();
+
+    std::string mChain;
+    uint64_to_string(Message::parseMChain(bytes), mChain);
+
+    pipeController.sendToPipe(mChain, bytes);
+
 }
 
 
@@ -94,4 +99,15 @@ void SocketController::asyncWaitForData() {
 //
 //}
 
+
+void SocketController::uint64_to_string(uint64_t value, std::string &result) {
+    result.clear();
+    result.reserve(20); // max. 20 digits possible
+    uint64_t q = value;
+    do {
+        result += "0123456789"[q % 10];
+        q /= 10;
+    } while (q);
+    std::reverse(result.begin(), result.end());
+}
 

@@ -15,7 +15,7 @@
 #include "messagelistener.h"
 #include "session.h"
 #include "threadsafequeue.h"
-
+#include "chain_config.h"
 
 class ReliableBroadcast
 {
@@ -55,6 +55,7 @@ class ReliableBroadcast
 
 public:
     ReliableBroadcast(int id, uint64_t mChainHash, const std::unordered_map<int, Node> &nodes);
+    ReliableBroadcast(ChainConfig config);
     void start();
     void stop();
     void postMessage(std::shared_ptr<std::vector<char>> buffer);

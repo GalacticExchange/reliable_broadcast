@@ -69,12 +69,12 @@ std::vector<char> Message::encode() const
             + mData.size();
     vector<char> buffer(total_size);
     size_t offset = 0;
+    write<typeof(mMChainHash)>(buffer.begin(), offset, mMChainHash);
+    offset += sizeof(mMChainHash);
     write<typeof(mClientId)>(buffer.begin(), offset, mClientId);
     offset += sizeof(mClientId);
     write<typeof(mNonce)>(buffer.begin(), offset, mNonce);
     offset += sizeof(mNonce);
-    write<typeof(mMChainHash)>(buffer.begin(), offset, mMChainHash);
-    offset += sizeof(mMChainHash);
     write<typeof(mNodeId)>(buffer.begin(), offset, mNodeId);
     offset += sizeof(mNodeId);
     buffer[offset] = static_cast<char>(mType);
@@ -106,13 +106,13 @@ shared_ptr<Message> Message::parse(
 
     shared_ptr<Message> message = make_shared<Message>();
     size_t offset = 0;
-    message->mClientId = parse<typeof(mClientId)>(begin, end, offset);
-    offset += sizeof(mClientId);
-    message->mNonce = parse<typeof(mNonce)>(begin, end, offset);
-    offset += sizeof(mNonce);
-    message->mMChainHash = parse<typeof(mMChainHash)>(begin, end, offset);
+    message->mMChainHash = parse<typeof(message->mMChainHash)>(begin, end, offset);
     offset += sizeof(mMChainHash);
-    message->mNodeId = parse<typeof(mNodeId)>(begin, end, offset);
+    message->mClientId = parse<typeof(message->mClientId)>(begin, end, offset);
+    offset += sizeof(mClientId);
+    message->mNonce = parse<typeof(message->mNonce)>(begin, end, offset);
+    offset += sizeof(mNonce);
+    message->mNodeId = parse<typeof(message->mNodeId)>(begin, end, offset);
     offset += sizeof(mNodeId);
     char messageType = *(begin + offset);
     if (messageType >= 3)
@@ -152,4 +152,9 @@ void Message::write(vector<char>::iterator begin, size_t offset, const T &value)
     copy(reinterpret_cast<const char*>(&value),
          reinterpret_cast<const char*>(&value) + sizeof(T),
          &*begin + offset);
+}
+
+uint64_t Message::parseMChain(std::vector<char> encoded){
+    return parse<typeof(Message::mMChainHash)>(encoded.begin(), encoded.end(), 0);
+
 }

@@ -8,7 +8,7 @@ set (CMAKE_CXX_STANDARD 11)
 file(GLOB SOURCES src/*.cpp)
 file(GLOB HEADERS src/*.h)
 
-set(LIBS pthread capnp kj)
+set(LIBS pthread)
 
 find_package(Boost 1.58.0 COMPONENTS system thread REQUIRED)
 if (Boost_FOUND)

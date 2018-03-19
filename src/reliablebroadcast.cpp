@@ -49,7 +49,8 @@ ReliableBroadcast::ReliableBroadcast(ChainConfig config) :
         mNodes(config.getNodes()),
         mMessageListener(config.getMChainPath(), *this),
         mSessions(*this),
-        mCommitCounter(0)
+        mCommitCounter(0),
+        mBroadcastSocket(mIoService)
 {
 
 }

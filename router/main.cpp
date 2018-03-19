@@ -1,30 +1,30 @@
 #include <thread>
 
-#include "socket_controller.h"
+#include "outer_socket.h"
 
 
 using namespace std;
 
-void sendTestMessage(SocketController &controller);
+void sendTestMessage(OuterSocket &outerSocket);
 
 int main() {
 
-    SocketController controller(1234);
+    OuterSocket outerSocket(1234);
 
-    thread listener([&controller]() {
-        controller.listen();
+    thread listener([&outerSocket]() {
+        outerSocket.listen();
     });
 
 
     sleep(2);
 
-    sendTestMessage(controller);
+    sendTestMessage(outerSocket);
 
     listener.join();
     return 0;
 }
 
-void sendTestMessage(SocketController &controller) {
+void sendTestMessage(OuterSocket &outerSocket) {
 
     std::string str = "hello world!";
     std::vector<char> data(str.begin(), str.end());
@@ -37,5 +37,5 @@ void sendTestMessage(SocketController &controller) {
 
     shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
 
-    controller.send(targetEndpoint, charMessagePtr);
+    outerSocket.send(targetEndpoint, charMessagePtr);
 }

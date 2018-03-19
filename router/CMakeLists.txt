@@ -22,6 +22,10 @@ file(GLOB HEADERS *.h)
 file(GLOB SRC_FILES
         ../src/message.h
         ../src/message.cpp
+        ../src/chain_config.h
+        ../src/chain_config.cpp
+        ../src/node.h
+        ../src/node.cpp
 
 #        ../src/internalmessage.h
 #        ../src/internalmessage.cpp

@@ -42,6 +42,17 @@ ReliableBroadcast::ReliableBroadcast(int id, uint64_t mChainHash, const unordere
 {
 }
 
+ReliableBroadcast::ReliableBroadcast(ChainConfig config) :
+        mId(config.getId()),
+        mMChainHash(config.getMChainHash()),
+        mNodes(config.getNodes()),
+        mMessageListener(config.getMChainPath(), *this),
+        mSessions(*this),
+        mCommitCounter(0)
+{
+
+}
+
 void ReliableBroadcast::start()
 {
     asyncProcessMessage();

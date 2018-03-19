@@ -11,8 +11,7 @@ using namespace std;
 #include "reliablebroadcast.h"
 
 
-int main()
-{
+int main() {
 //    thread sender([](){
 //        ofstream os("/tmp/m_chains/m_chain_5", ios::binary);
 
@@ -32,23 +31,25 @@ int main()
 
     srand(clock());
 
-    boost::property_tree::ptree json_config;
-    boost::property_tree::read_json("config.json", json_config);
+    ChainConfig config("config.json");
 
-    int id = json_config.get<int>("id");
+//    boost::property_tree::ptree json_config;
+//    boost::property_tree::read_json("config.json", json_config);
+//
+//    int id = json_config.get<int>("id");
+//
+//    uint64_t mChainHash = json_config.get<uint64_t>("mChainHash");
+//
+//    unordered_map<int, Node> nodes;
+//    for (auto& item : json_config.get_child("nodes"))
+//    {
+//        int id = item.second.get<int>("id");
+//        string address = item.second.get<string>("host");
+//        int port = item.second.get<int>("port");
+//        nodes[id] = Node(address, port);
+//    }
 
-    uint64_t mChainHash = json_config.get<uint64_t>("mChainHash");
-
-    unordered_map<int, Node> nodes;
-    for (auto& item : json_config.get_child("nodes"))
-    {
-        int id = item.second.get<int>("id");
-        string address = item.second.get<string>("host");
-        int port = item.second.get<int>("port");
-        nodes[id] = Node(address, port);
-    }
-
-    ReliableBroadcast(id, mChainHash, nodes).start();
+    ReliableBroadcast(config).start();
 
 //    sender.join();
 

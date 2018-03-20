@@ -1,3 +1,6 @@
+#include "reliablebroadcast.h"
+#include "session.h"
+
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -16,12 +19,6 @@ using std::mutex;
 using std::pair;
 using std::shared_ptr;
 using std::vector;
-
-#include "echomessage.h"
-#include "readymessage.h"
-#include "reliablebroadcast.h"
-#include "sendmessage.h"
-#include "session.h"
 
 
 Session::Session(ReliableBroadcast &owner,
@@ -185,27 +182,4 @@ size_t Session::getEchoMessageCountTarget(size_t n, size_t t)
 void Session::deliver(std::shared_ptr<Message> message)
 {
     mOwner.deliver(message);
-
-//    const size_t UPDATE_INTERVAL = 100;
-//    size_t commitCount = mOwner.mCommitCounter.fetch_add(1) + 1;
-//    if (commitCount == 1)
-//    {
-//        mOwner.mStartTime = std::chrono::system_clock::now();
-//    }
-//    if (commitCount % UPDATE_INTERVAL == 0)
-//    {
-//        size_t runningTimeSec = std::chrono::duration_cast<std::chrono::seconds>(
-//                    std::chrono::system_clock::now() - mOwner.mStartTime).count();
-//        if (runningTimeSec)
-//        {
-//            cout << commitCount / runningTimeSec << " commits per second" << endl;
-//        }
-//    }
-////    cerr << "Deliver message" << endl;
-////    for (char character : *mMessage)
-////    {
-////        cout << character;
-////    }
-////    cout << endl;
-//    mOwner.mSessions.removeSession(mId);
 }

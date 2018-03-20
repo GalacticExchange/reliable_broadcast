@@ -1,4 +1,3 @@
-#include "externalmessage.h"
 #include "reliablebroadcast.h"
 #include "session.h"
 
@@ -128,35 +127,6 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
         }
     });
     processMessage(message);
-
-//    shared_ptr<vector<char>> rawMessagePtr =
-//            make_shared<vector<char>>(move(message->compile(mId)));
-////    cerr << "Going to brodcast message: [";
-////    bool first = true;
-////    for (char byte : *rawMessagePtr)
-////    {
-////        if (first)
-////        {
-////            first = false;
-////        } else {
-////            cerr <<  ", ";
-////        }
-////        cerr << static_cast<int>(byte);
-////    }
-////    cerr << "]" << endl;
-//    for (auto node_ptr : mNodes)
-//    {
-//        if (node_ptr.first != mId)
-//        {
-//            const Node &node = node_ptr.second;
-//            boost::asio::ip::udp::endpoint targetEndpoint(
-//                        boost::asio::ip::address::from_string(node.getAddress()),
-//                        node.getPort());
-////            mMessageListener.send(targetEndpoint, rawMessagePtr);
-//            throw std::logic_error("Not implemented");
-//        }
-//    }
-    //    processMessage(message);
 }
 
 void ReliableBroadcast::deliver(std::shared_ptr<Message> message)

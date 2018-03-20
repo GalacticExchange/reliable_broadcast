@@ -1,3 +1,5 @@
+#include "message.h"
+
 #include <memory>
 #include <vector>
 
@@ -5,12 +7,6 @@ using std::copy;
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
-
-#include "echomessage.h"
-#include "externalmessage.h"
-#include "message.h"
-#include "readymessage.h"
-#include "sendmessage.h"
 
 
 uint64_t Message::getClientId() const

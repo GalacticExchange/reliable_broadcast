@@ -1,22 +1,22 @@
 #ifndef RELIABLEBROADCAST_H
 #define RELIABLEBROADCAST_H
 
-#include <atomic>
-#include <thread>
-#include <unordered_map>
-#include <vector>
-
-#include <boost/asio.hpp>
-#include <boost/thread/pthread/shared_mutex.hpp>
-#include <cpp_redis/cpp_redis>
-
-#include "internalmessage.h"
 #include "message.h"
 #include "node.h"
 #include "messagelistener.h"
 #include "session.h"
 #include "threadsafequeue.h"
 #include "chain_config.h"
+
+#include <boost/asio.hpp>
+#include <boost/thread/pthread/shared_mutex.hpp>
+#include <cpp_redis/cpp_redis>
+
+#include <atomic>
+#include <thread>
+#include <unordered_map>
+#include <vector>
+
 
 class ReliableBroadcast
 {

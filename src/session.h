@@ -1,18 +1,14 @@
 #ifndef SESSION_H
 #define SESSION_H
 
+#include <boost/uuid/sha1.hpp>
+
 #include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <unordered_set>
 
-#include <boost/uuid/sha1.hpp>
-
-#include "externalmessage.h"
-#include "hashmessage.h"
-#include "internalmessage.h"
-#include "sendmessage.h"
 
 class ReliableBroadcast;
 

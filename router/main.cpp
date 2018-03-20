@@ -1,26 +1,32 @@
 #include <thread>
 
-#include "outer_socket.h"
-
+//#include "outer_socket.h"
+#include "router.h"
 
 using namespace std;
 
 void sendTestMessage(OuterSocket &outerSocket);
 
+
+void signalHandler(int signum) {
+    cout << "Signal (" << signum << ") received.\n";
+    //todo poll new mChains
+}
+
+
 int main() {
+//    signal(SIGPOLL, signalHandler);
 
-    OuterSocket outerSocket(1234);
+    Router router;
 
-    thread listener([&outerSocket]() {
-        outerSocket.listen();
+    thread routerThr([&router]() {
+        router.start();
     });
 
+    sendTestMessage(router.getOuterSocket());
 
-    sleep(2);
+    routerThr.join();
 
-    sendTestMessage(outerSocket);
-
-    listener.join();
     return 0;
 }
 
@@ -33,7 +39,7 @@ void sendTestMessage(OuterSocket &outerSocket) {
 
     boost::asio::ip::udp::endpoint targetEndpoint(
             boost::asio::ip::address::from_string("127.0.0.1"),
-            1234);
+            Router::UDP_OUTER_PORT);
 
     shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
 

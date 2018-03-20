@@ -20,13 +20,15 @@ using boost::asio::ip::udp;
 
 
 BasicSocket::BasicSocket(int port) :
-        mSocket(mIoService, udp::endpoint(udp::v4(), port)),
-        mBuffer(MAX_LENGTH) {
+        mBuffer(MAX_LENGTH),
+        mSocket(mIoService, udp::endpoint(udp::v4(), port))
+         {
     asyncWaitForData();
 }
 
 void BasicSocket::send(udp::endpoint &target,
                             std::shared_ptr<const std::vector<char>> buffer) {
+    std::cout << "sending msg" << std::endl;
     mSocket.async_send_to(boost::asio::buffer(*buffer), target, [buffer](
             const boost::system::error_code &error,
             std::size_t) {
@@ -73,6 +75,20 @@ void BasicSocket::asyncWaitForData() {
     mSocket.async_receive_from(boost::asio::buffer(mBuffer), sender,
                                boost::bind(&BasicSocket::receiveHandler, this, boost::asio::placeholders::error,
                                            boost::asio::placeholders::bytes_transferred));
+
+//    mSocket.async_receive_from(
+//            boost::asio::buffer(mBuffer),
+//            sender,
+//            [this](boost::system::error_code ec, std::size_t bytes_recvd)
+//            {
+//                if (!ec && bytes_recvd > 0)
+//                {
+//                    this->onReceive(bytes_recvd);
+//                } else {
+//                    cerr << "Error on receiving: " << ec << endl;
+//                }
+//                asyncWaitForData();
+//            });
 }
 
 //void BasicSocket::syncWaitForData() {

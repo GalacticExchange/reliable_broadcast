@@ -9,9 +9,6 @@
 #ifndef BROADCAST_CHAIN_CONFIG_H
 #define BROADCAST_CHAIN_CONFIG_H
 
-#endif //BROADCAST_CHAIN_CONFIG_H
-
-
 class ChainConfig {
     uint64_t mChainHash;
     int id;
@@ -37,3 +34,7 @@ private:
     void initFields(boost::property_tree::ptree json_config);
 
 };
+
+#endif //BROADCAST_CHAIN_CONFIG_H
+
+

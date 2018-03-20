@@ -24,7 +24,8 @@ using boost::asio::ip::udp;
 //    asyncWaitForData();
 //}
 
-OuterSocket::OuterSocket(int port) : BasicSocket(port){
+OuterSocket::OuterSocket(int port) : BasicSocket(port) {
+    std::cout << "OuterSocket constructor" << std::endl;
 }
 
 

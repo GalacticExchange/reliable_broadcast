@@ -8,6 +8,7 @@
 
 #include <boost/asio.hpp>
 #include <boost/thread/pthread/shared_mutex.hpp>
+#include <cpp_redis/cpp_redis>
 
 #include "internalmessage.h"
 #include "message.h"
@@ -52,20 +53,25 @@ class ReliableBroadcast
     std::atomic<size_t> mCommitCounter;
     std::chrono::system_clock::time_point mStartTime;
     boost::asio::ip::udp::socket mBroadcastSocket;
+    cpp_redis::client mRedisClient;
 
 public:
-    ReliableBroadcast(int id, uint64_t mChainHash, const std::unordered_map<int, Node> &nodes);
+    ReliableBroadcast(int id,
+                      uint64_t mChainHash,
+                      const std::string &path,
+                      const std::unordered_map<int, Node> &nodes);
     ReliableBroadcast(ChainConfig config);
     void start();
     void stop();
     void postMessage(std::shared_ptr<std::vector<char>> buffer);
     size_t getNodesCount() const;
     void broadcast(Message::MessageType messageType, std::shared_ptr<Message> message);
+    void deliver(std::shared_ptr<Message> message);
 
 private:
     void asyncProcessMessage();
-    void processMessage(std::shared_ptr<Message> message);    
-    std::string getPipeFileName() const;
+    void processMessage(std::shared_ptr<Message> message);
+    std::string getPipeFileName(const std::string &path) const;
 };
 
 #endif // RELIABLEBROADCAST_H

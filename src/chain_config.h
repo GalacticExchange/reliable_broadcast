@@ -1,15 +1,11 @@
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
-#include <unordered_map>
-
-
-#include "node.h"
-
-
 #ifndef BROADCAST_CHAIN_CONFIG_H
 #define BROADCAST_CHAIN_CONFIG_H
 
-#endif //BROADCAST_CHAIN_CONFIG_H
+#include "node.h"
+
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/json_parser.hpp>
+#include <unordered_map>
 
 
 class ChainConfig {
@@ -37,3 +33,5 @@ private:
     void initFields(boost::property_tree::ptree json_config);
 
 };
+
+#endif //BROADCAST_CHAIN_CONFIG_H

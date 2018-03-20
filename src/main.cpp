@@ -18,7 +18,7 @@ int main()
 
         for (int i = 0;; ++i)
         {
-            Message message(i, i, i, i, Message::MessageType::SEND, vector<char>());
+            Message message(i, i, 5, i, Message::MessageType::SEND, vector<char>());
             vector<char> buffer = message.encode();
 
             uint16_t length = buffer.size();
@@ -33,26 +33,9 @@ int main()
     srand(clock());
 
     ChainConfig config("config.json");
-
-//    boost::property_tree::ptree json_config;
-//    boost::property_tree::read_json("config.json", json_config);
-//
-//    int id = json_config.get<int>("id");
-//
-//    uint64_t mChainHash = json_config.get<uint64_t>("mChainHash");
-//
-//    unordered_map<int, Node> nodes;
-//    for (auto& item : json_config.get_child("nodes"))
-//    {
-//        int id = item.second.get<int>("id");
-//        string address = item.second.get<string>("host");
-//        int port = item.second.get<int>("port");
-//        nodes[id] = Node(address, port);
-//    }
-
     ReliableBroadcast(config).start();
 
-//    sender.join();
+    sender.join();
 
     return 0;
 }

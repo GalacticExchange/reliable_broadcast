@@ -1,3 +1,14 @@
+#include "externalmessage.h"
+#include "reliablebroadcast.h"
+#include "session.h"
+
+#include <boost/thread/locks.hpp>
+#include <boost/thread/pthread/shared_mutex.hpp>
+
+using boost::shared_lock;
+using boost::shared_mutex;
+using boost::unique_lock;
+
 #include <chrono>
 #include <iostream>
 #include <memory>
@@ -16,41 +27,33 @@ using std::make_shared;
 using std::mutex;
 using std::pair;
 using std::shared_ptr;
+using std::string;
 using std::stringstream;
 using std::thread;
 using std::unordered_map;
 using std::vector;
 
-#include <boost/thread/locks.hpp>
-#include <boost/thread/pthread/shared_mutex.hpp>
 
-using boost::shared_lock;
-using boost::shared_mutex;
-using boost::unique_lock;
-
-#include "externalmessage.h"
-#include "reliablebroadcast.h"
-#include "session.h"
-
-ReliableBroadcast::ReliableBroadcast(int id, uint64_t mChainHash, const unordered_map<int, Node> &nodes):
+ReliableBroadcast::ReliableBroadcast(int id,
+                                     uint64_t mChainHash,
+                                     const string &path,
+                                     const unordered_map<int, Node> &nodes):
     mId(id),
     mMChainHash(mChainHash),
     mNodes(nodes),
-    mMessageListener(getPipeFileName(), *this),
+    mMessageListener(getPipeFileName(path), *this),
     mSessions(*this),
     mCommitCounter(0),
     mBroadcastSocket(mIoService)
 {
+    mRedisClient.connect();
 }
 
 ReliableBroadcast::ReliableBroadcast(ChainConfig config) :
-        mId(config.getId()),
-        mMChainHash(config.getMChainHash()),
-        mNodes(config.getNodes()),
-        mMessageListener(config.getMChainPath(), *this),
-        mSessions(*this),
-        mCommitCounter(0),
-        mBroadcastSocket(mIoService)
+    ReliableBroadcast(config.getId(),
+                      config.getMChainHash(),
+                      config.getMChainPath(),
+                      config.getNodes())
 {
 
 }
@@ -153,13 +156,24 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 //            throw std::logic_error("Not implemented");
 //        }
 //    }
-//    processMessage(message);
+    //    processMessage(message);
 }
 
-std::string ReliableBroadcast::getPipeFileName() const
+void ReliableBroadcast::deliver(std::shared_ptr<Message> message)
+{
+//    cerr << "Deliver message with nonce " << message->getNonce() << endl;
+    uint64_t mChainHash = message->getMChainHash();
+    mRedisClient.rpush(reinterpret_cast<char*>(&mChainHash),
+                       vector<string>(1,
+                                      string(message->getData().begin(),
+                                             message->getData().end())));
+    mRedisClient.commit();
+}
+
+std::string ReliableBroadcast::getPipeFileName(const std::string &path) const
 {
     stringstream ss;
-    ss << "/tmp/m_chains/m_chain_" << mMChainHash;
+    ss << path << "/m_chain_" << mMChainHash;
     return ss.str();
 }
 

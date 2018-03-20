@@ -2,13 +2,14 @@ cmake_minimum_required(VERSION 2.6)
 
 project(broadcast)
 
-add_subdirectory(router)
+#add_subdirectory(router)
 set (CMAKE_CXX_STANDARD 11)
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread")
 
 file(GLOB SOURCES src/*.cpp)
 file(GLOB HEADERS src/*.h)
 
-set(LIBS pthread)
+set(LIBS cpp_redis tacopie)
 
 find_package(Boost 1.58.0 COMPONENTS system thread REQUIRED)
 if (Boost_FOUND)

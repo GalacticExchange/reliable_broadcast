@@ -26,7 +26,7 @@ void InnerSocket::addMChain(ChainConfig &config) {
 
     //todo
 
-    mChains[config.getId()] = nodes;
+    (*mChains)[config.getId()] = nodes;
 }
 
 

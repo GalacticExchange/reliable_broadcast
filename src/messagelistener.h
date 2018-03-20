@@ -1,11 +1,11 @@
 #ifndef MESSAGELISTENER_H
 #define MESSAGELISTENER_H
 
+#include "message.h"
+
 #include <fstream>
 #include <memory>
 #include <string>
-
-#include "message.h"
 
 
 class ReliableBroadcast;
@@ -26,7 +26,7 @@ public:
 //              std::shared_ptr<const std::vector<char>> buffer);
     void listen();
 private:
-    void onReceive(std::shared_ptr<vector<char>> buffer);
+    void onReceive(std::shared_ptr<std::vector<char>> buffer);
     void asyncWaitForData();
 };
 

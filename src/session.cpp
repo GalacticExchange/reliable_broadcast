@@ -184,7 +184,7 @@ size_t Session::getEchoMessageCountTarget(size_t n, size_t t)
 
 void Session::deliver(std::shared_ptr<Message> message)
 {
-    cerr << "Delivered message with nonce " << message->getNonce() << endl;
+    mOwner.deliver(message);
 
 //    const size_t UPDATE_INTERVAL = 100;
 //    size_t commitCount = mOwner.mCommitCounter.fetch_add(1) + 1;

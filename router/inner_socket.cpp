@@ -7,7 +7,7 @@
 
 using namespace std;
 
-InnerSocket::InnerSocket(const OuterSocket &outerSocket, unordered_map<int, std::vector<Node>> &mChains, int port)
+InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<int, std::vector<Node>> &mChains, int port)
         : BasicSocket(
         port) {
 
@@ -23,9 +23,12 @@ void InnerSocket::onReceive(size_t length) {
     shared_ptr<const vector<char>> mMessage = make_shared<vector<char >>(
             *mBuffer.begin() ? mBuffer.begin() : mBuffer.begin() + 1, mBuffer.begin() + length);
 
-    vector<char> bytes = *mMessage;
+//    vector<char> bytes = *mMessage;
 
-    std::string mChain;
-    uint64_to_string(Message::parseMChain(bytes), mChain);
+    uint64_t chainName = Message::parseMChain(*mMessage);
+    for (const Node &node : (*mChains)[chainName]) {
+        boost::asio::ip::udp::endpoint endpoint = node.getEndpoint();
+        outerSocket->send(endpoint, mMessage);
+    }
 }
 

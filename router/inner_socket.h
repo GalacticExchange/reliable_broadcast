@@ -20,12 +20,12 @@
 class InnerSocket : public BasicSocket {
     std::unordered_map<int, std::vector<Node>> *mChains;
 
-    const OuterSocket *outerSocket;
+    OuterSocket *outerSocket;
 
     const int LOCAL_PORT = 1122;
 
 public:
-    InnerSocket(const OuterSocket &outerSocket, std::unordered_map<int, std::vector<Node>> &mChains, int port);
+    InnerSocket(OuterSocket &outerSocket, std::unordered_map<int, std::vector<Node>> &mChains, int port);
 
 
     void onReceive(size_t length) override;

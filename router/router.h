@@ -22,13 +22,15 @@ class Router {
 
     const int UDP_INNER_PORT = 1122;
 public:
-    Router(std::string nodeConfigPath);
+    explicit Router(std::string nodeConfigPath);
 
     void addMChain(ChainConfig &config);
 
     void start();
 
     OuterSocket &getOuterSocket();
+
+    void readChainConfigs(const std::string &configsDir);
 
 // todo parse from config
     static const int UDP_OUTER_PORT = 1234;

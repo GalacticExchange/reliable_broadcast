@@ -9,11 +9,10 @@ Router::Router(std::string nodeConfigPath) :
         innerSocket(outerSocket, mChains, UDP_INNER_PORT) {
 
 //    signal(SIGPOLL, this->pollHandler);
-    //todo try to read mChain configs?
-
+    readChainConfigs(nodeConfig.getMChainDirPath());
 }
 
-OuterSocket & Router::getOuterSocket(){
+OuterSocket &Router::getOuterSocket() {
     return outerSocket;
 }
 
@@ -25,22 +24,30 @@ void Router::addMChain(ChainConfig &config) {
         nodes.push_back(kv.second);
     }
 
-    mChains[config.getId()] = nodes;
+    mChains[config.getMChainHash()] = nodes;
 }
 
 /***
  * Blocking call
  */
 void Router::start() {
-    outerThread = std::thread([this](){
-       outerSocket.listen();
+    outerThread = std::thread([this]() {
+        outerSocket.listen();
     });
-    innerThread = std::thread([this](){
+    innerThread = std::thread([this]() {
         innerSocket.listen();
     });
 
     outerThread.join();
     innerThread.join();
+}
+
+void Router::readChainConfigs(const string &configsDir) {
+    vector<string> configs = FileUtils::listFiles(configsDir);
+    for (const string &configPath : configs) {
+        ChainConfig chainConfig(configPath);
+        addMChain(chainConfig);
+    }
 }
 
 //void Router::pollHandler(int signum) {

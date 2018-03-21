@@ -1,6 +1,4 @@
 #include <thread>
-
-//#include "outer_socket.h"
 #include "router.h"
 
 using namespace std;
@@ -17,7 +15,7 @@ void signalHandler(int signum) {
 int main() {
 //    signal(SIGPOLL, signalHandler);
 
-    Router router("../node_config.json");
+    Router router("/tmp/node/node_conf.json");
 
     thread routerThr([&router]() {
         router.start();

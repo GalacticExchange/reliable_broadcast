@@ -68,7 +68,7 @@ void BasicSocket::receiveHandler(const boost::system::error_code &ec, std::size_
 }
 
 void BasicSocket::asyncWaitForData() {
-    std::cout << "Entered asyncWaitForData()" << endl;
+//    std::cout << "Entered asyncWaitForData()" << endl;
 
     udp::endpoint sender;
 

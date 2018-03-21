@@ -6,7 +6,6 @@
 #include <iostream>
 #include <vector>
 #include "boost/filesystem.hpp"
-#include <iostream>
 
 
 #include <unordered_map>
@@ -14,6 +13,7 @@
 
 #include "../src/message.h"
 
+#include "file_utils.h"
 
 class PipeController {
 
@@ -24,8 +24,6 @@ class PipeController {
 
 public:
     PipeController();
-
-    std::vector<std::string> listFiles(std::string path);
 
     bool hasPipe(std::string pipeName);
 

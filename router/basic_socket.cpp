@@ -28,7 +28,7 @@ BasicSocket::BasicSocket(int port) :
 
 void BasicSocket::send(udp::endpoint &target,
                             std::shared_ptr<const std::vector<char>> buffer) {
-    std::cout << "sending msg" << std::endl;
+//    std::cout << "sending msg" << std::endl;
     mSocket.async_send_to(boost::asio::buffer(*buffer), target, [buffer](
             const boost::system::error_code &error,
             std::size_t) {

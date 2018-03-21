@@ -5,15 +5,19 @@ using namespace std;
 
 Router::Router(std::string nodeConfigPath) :
         nodeConfig(nodeConfigPath),
-        outerSocket(nodeConfig.getPort()),
+        outerSocket(nodeConfig.getPort(), const_cast<string &>(nodeConfig.getPipesDir())),
         innerSocket(outerSocket, mChains, UDP_INNER_PORT) {
 
 //    signal(SIGPOLL, this->pollHandler);
-    readChainConfigs(nodeConfig.getMChainDirPath());
+    readChainConfigs(nodeConfig.getChainDir());
 }
 
 OuterSocket &Router::getOuterSocket() {
     return outerSocket;
+}
+
+InnerSocket &Router::getInnerSocket() {
+    return innerSocket;
 }
 
 void Router::addMChain(ChainConfig &config) {

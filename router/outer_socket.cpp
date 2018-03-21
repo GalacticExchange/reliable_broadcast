@@ -18,9 +18,9 @@ using std::shared_ptr;
 using boost::asio::ip::udp;
 
 
-
-
-OuterSocket::OuterSocket(int port) : BasicSocket(port) {
+OuterSocket::OuterSocket(int port, std::string &fifoDir) :
+        BasicSocket(port),
+        pipeController(fifoDir) {
 //    std::cout << "OuterSocket constructor" << std::endl;
 }
 

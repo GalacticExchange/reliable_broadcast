@@ -17,18 +17,18 @@
 
 class PipeController {
 
-    const std::string FIFO_DIR = "/tmp/skale_fifo";
+//    const std::string FIFO_DIR = "/tmp/skale_fifo";
 
 //    std::vector<std::string> pipes;
     std::unordered_map<std::string, int> pipes;
 
 public:
-    PipeController();
+    explicit PipeController(std::string &fifoDir);
 
     bool hasPipe(std::string pipeName);
 
     void sendToPipe(const std::string &pipeName, std::vector<char> bytes);
 
 private:
-    void initPipes();
+    void initPipes(std::string &fifoDir);
 };

@@ -25,8 +25,12 @@ void NodeConfig::initFields(const boost::property_tree::ptree &json_config) {
     port = json_config.get<int>("port");
     cout << "Node config PORT: " << port << endl;
 
-    chainConfigDirPath = json_config.get<string>("chainConfigDirPath");
-    cout << "Node config chainConfigDirPath: " << chainConfigDirPath << endl;
+    chainConfigDir = json_config.get<string>("chainConfigDir");
+    cout << "Node config chainConfigDir: " << chainConfigDir << endl;
+
+    pipesDir = json_config.get<string>("pipesDir");
+    cout << "Node config pipesDir: " << pipesDir << endl;
+
 
 }
 
@@ -42,6 +46,10 @@ int NodeConfig::getPort() const {
     return port;
 }
 
-const string &NodeConfig::getMChainDirPath() const {
-    return chainConfigDirPath;
+const string &NodeConfig::getChainDir() const {
+    return chainConfigDir;
+}
+
+const string &NodeConfig::getPipesDir() const {
+    return pipesDir;
 }

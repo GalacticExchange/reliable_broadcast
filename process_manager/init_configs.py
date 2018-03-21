@@ -12,12 +12,13 @@ NODE_CONF = {
     "id": 1,
     "ip": "127.0.0.1",
     "port": 1234,
-    "chainConfigDirPath": CHAINS_CONF_DIR
+    "chainConfigDir": CHAINS_CONF_DIR,
+    "pipesDir": PIPES_DIR
 }
 
 CHAIN_CONF = {
     "chain_1": {
-        "mChainPath": CHAINS_CONF_DIR,
+        "mChainPath": PIPES_DIR,
         "mChainHash": "1234",
         "id": 0,
         "nodes": [
@@ -79,6 +80,17 @@ def write_json(path, data):
         pass
 
 
+def make_skale_fifo(path):
+    if os.path.exists(path):
+        logger.info("{} file exists.. removing".format(path))
+        os.remove(path)
+    try:
+        os.mkfifo(path)
+    except OSError as e:
+        print(e)
+        pass
+
+
 create_dir(NODE_DIR)
 create_dir(PIPES_DIR)
 create_dir(CHAINS_CONF_DIR)
@@ -91,4 +103,6 @@ write_json(NODE_CONF_PATH, NODE_CONF)
 
 for f in CHAIN_CONF:
     conf_path = os.path.join(CHAINS_CONF_DIR, f)
+    fifo_path = os.path.join(PIPES_DIR, CHAIN_CONF[f]['mChainHash'])
+    make_skale_fifo(fifo_path)
     write_json('{}.json'.format(conf_path), CHAIN_CONF[f])

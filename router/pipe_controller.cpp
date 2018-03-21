@@ -1,20 +1,19 @@
 #include "pipe_controller.h"
-
 #include <regex>
 
 using namespace std;
 using namespace boost::filesystem;
 
-PipeController::PipeController() {
-    initPipes();
+PipeController::PipeController(string &fifoDir) {
+    initPipes(fifoDir);
 };
 
 bool PipeController::hasPipe(const string pipeName) {
     return pipes.count(pipeName) > 0;
 }
 
-void PipeController::initPipes() {
-    vector<string> pipeNames = FileUtils::listFiles(FIFO_DIR);
+void PipeController::initPipes(string &fifoDir) {
+    vector<string> pipeNames = FileUtils::listFiles(fifoDir);
     for (const string &name: pipeNames) {
 
         // removing path from pipe name
@@ -30,9 +29,9 @@ void PipeController::sendToPipe(const std::string &pipeName, vector<char> bytes)
         cout << "Pipe: " << pipeName + " - not found" << endl;
         return;
     }
-    cout << "sending length " << endl;
+    cout << "Pipe: sending length " << endl;
     auto length = static_cast<uint16_t>(bytes.size());
     write(pipes[pipeName], reinterpret_cast<char *>(&length), sizeof(length));
-    cout << "sending message " << endl;
+    cout << "Pipe: sending message " << endl;
     write(pipes[pipeName], bytes.data(), bytes.size());
 }

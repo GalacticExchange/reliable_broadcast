@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(broadcast)
 
-#add_subdirectory(router)
+add_subdirectory(router)
 set (CMAKE_CXX_STANDARD 11)
 SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread")
 

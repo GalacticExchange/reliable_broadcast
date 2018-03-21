@@ -19,7 +19,7 @@ class OuterSocket : public BasicSocket {
 // todo pass params our pass pipeController from outside
     PipeController pipeController;
 public:
-    OuterSocket(int port);
+    explicit OuterSocket(int port);
 //    void send(boost::asio::ip::udp::endpoint &target,
 //              std::shared_ptr<const std::vector<char>> buffer);
 //    void listen();
@@ -29,7 +29,7 @@ private:
 ////    void syncWaitForData();
 //    void receiveHandler(const boost::system::error_code &ec, std::size_t bytes_recvd);
 //    void uint64_to_string(uint64_t value, std::string& result);
-    void onReceive(size_t length);
+    void onReceive(size_t length) override;
 };
 
 #endif // SOCKETCONTROLLER_H

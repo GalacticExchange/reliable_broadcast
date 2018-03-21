@@ -7,26 +7,13 @@
 
 using namespace std;
 
-InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<int, std::vector<Node>> &mChains) : BasicSocket(
-        LOCAL_PORT) {
+InnerSocket::InnerSocket(const OuterSocket &outerSocket, unordered_map<int, std::vector<Node>> &mChains, int port)
+        : BasicSocket(
+        port) {
 
     this->outerSocket = &outerSocket;
     this->mChains = &mChains;
 
-}
-
-
-void InnerSocket::addMChain(ChainConfig &config) {
-    std::vector<Node> nodes;
-    nodes.reserve(config.getNodes().size());
-
-    for (auto kv : config.getNodes()) {
-        nodes.push_back(kv.second);
-    }
-
-    //todo
-
-    (*mChains)[config.getId()] = nodes;
 }
 
 

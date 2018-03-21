@@ -9,7 +9,7 @@ class NodeConfig {
     int id;
     std::string ip;
     int port;
-    std::string mChainDirPath;
+    std::string chainConfigDirPath;
 
 public:
     explicit NodeConfig(const std::string &configPath);

@@ -1,13 +1,16 @@
 #include "router.h"
-#include <thread>
+
 
 using namespace std;
 
-Router::Router() :
-        outerSocket(UDP_OUTER_PORT),
+Router::Router(std::string nodeConfigPath) :
+        nodeConfig(nodeConfigPath),
+        outerSocket(nodeConfig.getPort()),
         innerSocket(outerSocket, mChains, UDP_INNER_PORT) {
 
 //    signal(SIGPOLL, this->pollHandler);
+    //todo try to read mChain configs?
+
 }
 
 OuterSocket & Router::getOuterSocket(){

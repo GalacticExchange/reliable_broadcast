@@ -17,7 +17,7 @@ void signalHandler(int signum) {
 int main() {
 //    signal(SIGPOLL, signalHandler);
 
-    Router router;
+    Router router("../node_config.json");
 
     thread routerThr([&router]() {
         router.start();

@@ -5,12 +5,14 @@
 
 #include "outer_socket.h"
 #include "inner_socket.h"
+#include "node_config.h"
 #include <thread>
 
 
 #include "../src/chain_config.h"
 
 class Router {
+    NodeConfig nodeConfig;
     OuterSocket outerSocket;
     InnerSocket innerSocket;
     std::unordered_map<int, std::vector<Node>> mChains;
@@ -20,7 +22,7 @@ class Router {
 
     const int UDP_INNER_PORT = 1122;
 public:
-    Router();
+    Router(std::string nodeConfigPath);
 
     void addMChain(ChainConfig &config);
 

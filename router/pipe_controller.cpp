@@ -4,27 +4,27 @@
 using namespace std;
 using namespace boost::filesystem;
 
-PipeController::PipeController(string &fifoDir) {
-    initPipes(fifoDir);
+PipeController::PipeController(const string &fifoDir) {
+    this->fifoDir = fifoDir;
+    updatePipes();
 };
 
 bool PipeController::hasPipe(const string pipeName) {
     return pipes.count(pipeName) > 0;
 }
 
-void PipeController::initPipes(string &fifoDir) {
+void PipeController::updatePipes() {
     vector<string> pipeNames = FileUtils::listFiles(fifoDir);
     for (const string &name: pipeNames) {
-
-        // removing path from pipe name
-//        string key = name.substr(FIFO_DIR.length() + 1);
         string key = FileUtils::getBaseName(name);
-//        cout << key << endl;
-        pipes[key] = open(name.c_str(), O_RDWR);
+        if (!hasPipe(key)) {
+            cout << "Adding fd of pipe " << key << endl;
+            pipes[key] = open(name.c_str(), O_RDWR);
+        }
     }
 }
 
-void PipeController::sendToPipe(const std::string &pipeName, vector<char> bytes) {
+void PipeController::sendToPipe(const string &pipeName, vector<char> bytes) {
     if (!hasPipe(pipeName)) {
         cout << "Pipe: " << pipeName + " - not found" << endl;
         return;

@@ -1,9 +1,12 @@
 #include "message.h"
 
+#include <iostream>
 #include <memory>
 #include <vector>
 
+using std::cerr;
 using std::copy;
+using std::endl;
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
@@ -97,7 +100,20 @@ shared_ptr<Message> Message::parse(
             + 1;
 
     if (begin + total_size > end) {
-        throw std::logic_error("Buffer is too small");
+        cerr <<  "Received message [";
+        bool first = true;
+        for (auto p = begin; p != end; ++p)
+        {
+            if (first)
+            {
+                first = false;
+            } else {
+                cerr << ' ';
+            }
+            cerr << static_cast<int>(*p);
+        }
+        cerr << "]" << endl;
+        throw std::logic_error("Buffer is too small");        
     }
 
     shared_ptr<Message> message = make_shared<Message>();
@@ -150,7 +166,7 @@ void Message::write(vector<char>::iterator begin, size_t offset, const T &value)
          &*begin + offset);
 }
 
-uint64_t Message::parseMChain(std::vector<char> encoded){
+uint64_t Message::parseMChain(const vector<char> &encoded)
+{
     return parse<typeof(Message::mMChainHash)>(encoded.begin(), encoded.end(), 0);
-
 }

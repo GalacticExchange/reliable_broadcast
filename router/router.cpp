@@ -20,12 +20,16 @@ InnerSocket &Router::getInnerSocket() {
     return innerSocket;
 }
 
-void Router::addMChain(ChainConfig &config) {
+void Router::addMChain(ChainConfig &config)
+{
     vector<Node> nodes;
     nodes.reserve(config.getNodes().size());
 
     for (auto kv : config.getNodes()) {
-        nodes.push_back(kv.second);
+        if (config.getId() != kv.first)
+        {
+            nodes.push_back(kv.second);
+        }
     }
 
     mChains[config.getMChainHash()] = nodes;

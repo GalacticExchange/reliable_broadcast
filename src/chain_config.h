@@ -16,9 +16,9 @@ class ChainConfig {
 
 public:
 
-    explicit ChainConfig(std::string confPath);
+    explicit ChainConfig(const std::string &confPath);
 
-    boost::property_tree::ptree parseJson(std::string &confPath);
+    boost::property_tree::ptree parseJson(const std::string &confPath);
 
     int getId() const;
 

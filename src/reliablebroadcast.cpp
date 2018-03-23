@@ -49,9 +49,9 @@ ReliableBroadcast::ReliableBroadcast(int id,
 }
 
 ReliableBroadcast::ReliableBroadcast(NodeConfig nodeConfig, ChainConfig chainConfig) :
-        ReliableBroadcast(0,
+        ReliableBroadcast(nodeConfig.getId(),
                           chainConfig.getMChainHash(),
-                          chainConfig.getMChainPath(),
+                          nodeConfig.getPipesDir(),
                           chainConfig.getNodes()) {
 
 }

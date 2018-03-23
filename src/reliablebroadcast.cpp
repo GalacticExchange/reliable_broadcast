@@ -36,55 +36,46 @@ using std::vector;
 ReliableBroadcast::ReliableBroadcast(int id,
                                      uint64_t mChainHash,
                                      const string &path,
-                                     const unordered_map<int, Node> &nodes):
-    mId(id),
-    mMChainHash(mChainHash),
-    mNodes(nodes),
-    mMessageListener(getPipeFileName(path), *this),
-    mSessions(*this),
-    mCommitCounter(0),
-    mBroadcastSocket(mIoService)
-{
+                                     const unordered_map<int, Node> &nodes) :
+        mId(id),
+        mMChainHash(mChainHash),
+        mNodes(nodes),
+        mMessageListener(getPipeFileName(path), *this),
+        mSessions(*this),
+        mCommitCounter(0),
+        mBroadcastSocket(mIoService) {
     mRedisClient.connect();
     mBroadcastSocket.open(boost::asio::ip::udp::v4());
 }
 
-ReliableBroadcast::ReliableBroadcast(ChainConfig config) :
-    ReliableBroadcast(config.getId(),
-                      config.getMChainHash(),
-                      config.getMChainPath(),
-                      config.getNodes())
-{
+ReliableBroadcast::ReliableBroadcast(NodeConfig nodeConfig, ChainConfig chainConfig) :
+        ReliableBroadcast(0,
+                          chainConfig.getMChainHash(),
+                          chainConfig.getMChainPath(),
+                          chainConfig.getNodes()) {
 
 }
 
-void ReliableBroadcast::start()
-{
+void ReliableBroadcast::start() {
     asyncProcessMessage();
     vector<thread> pool;
-    for (size_t i = 0; i < thread::hardware_concurrency(); ++i)
-    {
-        pool.emplace_back([this]()
-        {
+    for (size_t i = 0; i < thread::hardware_concurrency(); ++i) {
+        pool.emplace_back([this]() {
             this->mIoService.run();
         });
     }
     mMessageListener.listen();
-    for (auto &thread : pool)
-    {
+    for (auto &thread : pool) {
         thread.join();
     }
 }
 
-void ReliableBroadcast::postMessage(std::shared_ptr<vector<char>> buffer)
-{
+void ReliableBroadcast::postMessage(std::shared_ptr<vector<char>> buffer) {
     mMessageQueue.push(buffer);
 }
 
-void ReliableBroadcast::asyncProcessMessage()
-{
-    mIoService.post([this]()
-    {
+void ReliableBroadcast::asyncProcessMessage() {
+    mIoService.post([this]() {
         shared_ptr<vector<char>> buffer = mMessageQueue.pop();
         asyncProcessMessage();
         shared_ptr<Message> message = Message::parse(buffer->begin(), buffer->end());
@@ -92,14 +83,12 @@ void ReliableBroadcast::asyncProcessMessage()
     });
 }
 
-void ReliableBroadcast::processMessage(shared_ptr<Message> message)
-{
+void ReliableBroadcast::processMessage(shared_ptr<Message> message) {
     shared_ptr<Session> session = mSessions.getOrCreateSession(Session::getId(message));
     session->processMessage(message);
 }
 
-void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<Message> message)
-{
+void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<Message> message) {
 //    cerr << "\tBrodcast ";
 //    if (message->getType() == Message::MessageType::SEND)
 //    {
@@ -116,61 +105,52 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
     message->setNodeId(mId);
     message->setMessageType(messageType);
     shared_ptr<vector<char>> buffer = make_shared<vector<char>>(message->encode());
-    if (!mBroadcastSocket.is_open())
-    {
+    if (!mBroadcastSocket.is_open()) {
         throw std::logic_error("Broadcast socket is closed");
     }
     mBroadcastSocket.async_send_to(boost::asio::buffer(*buffer),
                                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(),
                                                                   BROADCAST_PORT),
-                                   [buffer](const boost::system::error_code& error,
-                                   std::size_t)
-    {
-        if (error)
-        {
-            cerr << "Error on send: " << error.message() << endl;
-        }
-    });
+                                   [buffer](const boost::system::error_code &error,
+                                            std::size_t) {
+                                       if (error) {
+                                           cerr << "Error on send: " << error.message() << endl;
+                                       }
+                                   });
     processMessage(message);
 }
 
-void ReliableBroadcast::deliver(std::shared_ptr<Message> message)
-{
+void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
     cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
-    mRedisClient.rpush(reinterpret_cast<char*>(&mChainHash),
+    mRedisClient.rpush(reinterpret_cast<char *>(&mChainHash),
                        vector<string>(1,
                                       string(message->getData().begin(),
                                              message->getData().end())));
     mRedisClient.commit();
 }
 
-std::string ReliableBroadcast::getPipeFileName(const std::string &path) const
-{
+std::string ReliableBroadcast::getPipeFileName(const std::string &path) const {
     stringstream ss;
     ss << path << "/" << mMChainHash;
     return ss.str();
 }
 
-ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner):
-    mOwner(owner),
-    mRemovingThread([this]()
-{
-    this->removeLoop();
-})
-{
+ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner) :
+        mOwner(owner),
+        mRemovingThread([this]() {
+            this->removeLoop();
+        }) {
 
 }
 
 shared_ptr<Session>
-ReliableBroadcast::SessionsPool::addSession(Session::Id id)
-{
+ReliableBroadcast::SessionsPool::addSession(Session::Id id) {
     shared_ptr<Session> session = make_shared<Session>(mOwner, id);
     {
         unique_lock<shared_mutex> lock(mSessionsMutex);
         auto session_ptr = mSessions.find(id);
-        if (session_ptr == mSessions.end())
-        {
+        if (session_ptr == mSessions.end()) {
             mSessions[session->getId()] = session;
         } else {
             session = session_ptr->second;
@@ -179,17 +159,14 @@ ReliableBroadcast::SessionsPool::addSession(Session::Id id)
     return session;
 }
 
-void ReliableBroadcast::SessionsPool::remove(Session::Id sessionId)
-{
+void ReliableBroadcast::SessionsPool::remove(Session::Id sessionId) {
 //    cerr << "Remove session #" << sessionId << endl;
     unique_lock<shared_mutex> lock(mSessionsMutex);
     mSessions.erase(sessionId);
 }
 
-void ReliableBroadcast::SessionsPool::removeLoop()
-{
-    while (true)
-    {
+void ReliableBroadcast::SessionsPool::removeLoop() {
+    while (true) {
         pair<uint64_t, system_clock::time_point> task = mRemoveQueue.pop();
         std::this_thread::sleep_until(task.second);
         remove(task.first);
@@ -197,8 +174,7 @@ void ReliableBroadcast::SessionsPool::removeLoop()
 }
 
 shared_ptr<Session>
-ReliableBroadcast::SessionsPool::getSession(Session::Id id) const
-{
+ReliableBroadcast::SessionsPool::getSession(Session::Id id) const {
     shared_lock<shared_mutex> lock(mSessionsMutex);
     shared_ptr<Session> session = nullptr;
     auto sessionPtr = mSessions.find(id);
@@ -209,24 +185,20 @@ ReliableBroadcast::SessionsPool::getSession(Session::Id id) const
 }
 
 shared_ptr<Session>
-ReliableBroadcast::SessionsPool::getOrCreateSession(Session::Id id)
-{    
+ReliableBroadcast::SessionsPool::getOrCreateSession(Session::Id id) {
     shared_ptr<Session> session = getSession(id);
-    if (!session)
-    {
+    if (!session) {
         session = addSession(id);
     }
     return session;
 }
 
-void ReliableBroadcast::SessionsPool::removeSession(Session::Id sessionId)
-{
+void ReliableBroadcast::SessionsPool::removeSession(Session::Id sessionId) {
     mRemoveQueue.push(make_pair(
-                          sessionId,
-                          system_clock::now() + std::chrono::seconds(REMOVE_DELAY_SEC)));
+            sessionId,
+            system_clock::now() + std::chrono::seconds(REMOVE_DELAY_SEC)));
 }
 
-size_t ReliableBroadcast::getNodesCount() const
-{
+size_t ReliableBroadcast::getNodesCount() const {
     return mNodes.size();
 }

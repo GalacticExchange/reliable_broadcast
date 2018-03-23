@@ -20,7 +20,6 @@ NODE_CONF = {
 
 CHAIN_CONF = {
     "chain_1": {
-        "mChainPath": PIPES_DIR,
         "mChainHash": "1234",
         "nodes": [
             {

@@ -3,14 +3,13 @@
 
 using namespace std;
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+//#include <boost/property_tree/ptree.hpp>
+//#include <boost/property_tree/json_parser.hpp>
 
 #include "reliablebroadcast.h"
 
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
 //    thread sender([](){
 //        ofstream os("/tmp/m_chains/m_chain_5", ios::binary);
 
@@ -30,16 +29,20 @@ int main(int argc, char *argv[])
 
     srand(clock());
 
-    string configFilename;
-    if (argc >= 2)
-    {
-        configFilename = string(argv[1]);
+    string nodeConfigPath;
+    string chainConfigPath;
+
+    if (argc >= 3) {
+        nodeConfigPath = string(argv[1]);
+        chainConfigPath = string(argv[2]);
     } else {
-        configFilename = "config.json";
+        nodeConfigPath = "node_config.json";
+        chainConfigPath = "chain_config.json";
     }
 
-    ChainConfig config(configFilename);
-    ReliableBroadcast(config).start();
+    NodeConfig nodeConfig(nodeConfigPath);
+    ChainConfig chainConfig(chainConfigPath);
+    ReliableBroadcast(nodeConfig, chainConfig).start();
 
 //    sender.join();
 

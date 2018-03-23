@@ -33,11 +33,6 @@
         dest: /home/ubuntu/reliable_broadcast
         version: master
 
-#    - name: generate dirs
-#      shell: "python init_configs.py"
-#      args:
-#        chdir: /home/ubuntu/reliable_broadcast/process_manager
-
 
     - name: create dirs
       file: path={{item.path}} state=directory recurse=yes
@@ -46,32 +41,6 @@
         - { path: '/tmp/node/pipe' }
         - { path: '/tmp/binaries' }
 
-#    - name: create chain dir
-#      file:
-#        path: /tmp/node/m_chains
-#        state: directory
-#        recurse: yes
-#
-#    - name: create pipe dir
-#      file:
-#        path: /tmp/node/pipe
-#        state: directory
-#        recurse: yes
-#
-#    - name: create binaries dir
-#      file:
-#        path: /tmp/binaries
-#        state: directory
-
-#    - name: copy node config
-#      copy:
-#        src: ../tests/nodes/{{inventory_hostname}}/node.json
-#        dest: /tmp/node/node.json
-#
-#    - name: copy chain config
-#      copy:
-#        src: ../tests/nodes/{{inventory_hostname}}/chain.json
-#        dest: /tmp/node/m_chains/chain.json
 
     - name: copy files
       copy: src={{ item.src }} dest={{ item.dest }}

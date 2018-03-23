@@ -8,14 +8,19 @@ int Node::getPort() const {
     return mPort;
 }
 
-Node::Node(const std::string &address, int port) :
+Node::Node(int nodeId, int port, const std::string &address) :
         mAddress(address),
         mPort(port),
         targetEndpoint(boost::asio::ip::address::from_string(address),
-                       port) {
+                       static_cast<unsigned short>(port)),
+        id(nodeId) {
 
 }
 
 boost::asio::ip::udp::endpoint Node::getEndpoint() const {
     return targetEndpoint;
+}
+
+int Node::getId() const {
+    return id;
 }

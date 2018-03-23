@@ -32,9 +32,11 @@ public:
 
     void readChainConfigs(const std::string &configsDir);
 
-// todo parse from config
-    static const int UDP_OUTER_PORT = 1234;
-    static const int UDP_INNER_PORT = 1122;
+    NodeConfig &getNodeConfig();
+
+//// todo parse from config
+//    static const int UDP_OUTER_PORT = 1234;
+//    static const int UDP_INNER_PORT = 1122;
 
 private:
 //    void pollHandler(int signum);

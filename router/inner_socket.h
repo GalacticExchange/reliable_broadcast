@@ -22,7 +22,7 @@ class InnerSocket : public BasicSocket {
 
     OuterSocket *outerSocket;
 
-    const int LOCAL_PORT = 1122;
+    int port;
 
 public:
     InnerSocket(OuterSocket &outerSocket, std::unordered_map<int, std::vector<Node>> &mChains, int port);

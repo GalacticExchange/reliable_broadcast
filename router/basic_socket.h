@@ -16,6 +16,7 @@ protected:
     boost::asio::ip::udp::socket mSocket;
     const size_t MAX_LENGTH = 512;
     std::vector<char> mBuffer;
+    int port;
 
 public:
     explicit BasicSocket(int port);
@@ -25,6 +26,8 @@ public:
               std::shared_ptr<const std::vector<char>> buffer);
 
     void listen();
+
+    int getPort();
 
 protected:
     virtual void onReceive(size_t length)= 0;

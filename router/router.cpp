@@ -6,7 +6,7 @@ using namespace std;
 Router::Router(std::string nodeConfigPath) :
         nodeConfig(nodeConfigPath),
         outerSocket(nodeConfig.getPort(), const_cast<string &>(nodeConfig.getPipesDir())),
-        innerSocket(outerSocket, mChains, UDP_INNER_PORT) {
+        innerSocket(outerSocket, mChains, nodeConfig.getLocalPort()) {
 
 //    signal(SIGPOLL, this->pollHandler);
     readChainConfigs(nodeConfig.getChainDir());
@@ -22,10 +22,12 @@ InnerSocket &Router::getInnerSocket() {
 
 void Router::addMChain(ChainConfig &config) {
     vector<Node> nodes;
-    nodes.reserve(config.getNodes().size());
+    nodes.reserve(config.getNodes().size() - 1);
 
     for (auto kv : config.getNodes()) {
-        nodes.push_back(kv.second);
+        if (kv.second.getId() != nodeConfig.getId()){
+            nodes.push_back(kv.second);
+        }
     }
 
     mChains[config.getMChainHash()] = nodes;
@@ -52,6 +54,10 @@ void Router::readChainConfigs(const string &configsDir) {
         ChainConfig chainConfig(configPath);
         addMChain(chainConfig);
     }
+}
+
+NodeConfig &Router::getNodeConfig() {
+    return nodeConfig;
 }
 
 //void Router::pollHandler(int signum) {

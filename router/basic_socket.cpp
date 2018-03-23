@@ -21,7 +21,8 @@ using boost::asio::ip::udp;
 
 BasicSocket::BasicSocket(int port) :
         mBuffer(MAX_LENGTH),
-        mSocket(mIoService, udp::endpoint(udp::v4(), port))
+        mSocket(mIoService, udp::endpoint(udp::v4(), port)),
+        port(port)
          {
     asyncWaitForData();
 }
@@ -58,7 +59,7 @@ void BasicSocket::listen() {
 
 
 void BasicSocket::receiveHandler(const boost::system::error_code &ec, std::size_t bytes_recvd) {
-    std::cout << "Entered callback " << endl;
+//    std::cout << "Entered callback " << endl;
     if (!ec && bytes_recvd > 0) {
         this->onReceive(bytes_recvd);
     } else {
@@ -137,5 +138,9 @@ void BasicSocket::uint64_to_string(uint64_t value, std::string &result) {
         q /= 10;
     } while (q);
     std::reverse(result.begin(), result.end());
+}
+
+int BasicSocket::getPort() {
+    return port;
 }
 

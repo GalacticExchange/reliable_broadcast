@@ -3,7 +3,8 @@
 
 using namespace std;
 
-void sendTestMessage(OuterSocket &outerSocket);
+void sendTestMessage(Router &router);
+
 void sendTestLocalMessage(InnerSocket &innerSocket);
 
 
@@ -22,14 +23,14 @@ int main() {
         router.start();
     });
 
-    sendTestMessage(router.getOuterSocket());
+    sendTestMessage(router);
     sendTestLocalMessage(router.getInnerSocket());
     routerThr.join();
 
     return 0;
 }
 
-void sendTestMessage(OuterSocket &outerSocket) {
+void sendTestMessage(Router &router) {
 
     std::string str = "hello world!";
     std::vector<char> data(str.begin(), str.end());
@@ -38,11 +39,11 @@ void sendTestMessage(OuterSocket &outerSocket) {
 
     boost::asio::ip::udp::endpoint targetEndpoint(
             boost::asio::ip::address::from_string("127.0.0.1"),
-            Router::UDP_OUTER_PORT);
+            static_cast<unsigned short>(router.getNodeConfig().getPort()));
 
     shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
 
-    outerSocket.send(targetEndpoint, charMessagePtr);
+    router.getOuterSocket().send(targetEndpoint, charMessagePtr);
 }
 
 
@@ -55,7 +56,7 @@ void sendTestLocalMessage(InnerSocket &innerSocket) {
 
     boost::asio::ip::udp::endpoint targetEndpoint(
             boost::asio::ip::address::from_string("127.0.0.1"),
-            Router::UDP_INNER_PORT);
+            static_cast<unsigned short>(innerSocket.getPort()));
 
     shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
 

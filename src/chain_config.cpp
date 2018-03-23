@@ -16,27 +16,23 @@ boost::property_tree::ptree ChainConfig::parseJson(string &confPath) {
 }
 
 void ChainConfig::initFields(boost::property_tree::ptree json_config) {
-    id = json_config.get<int>("id");
-    cout << "ID: " << id << endl;
     mChainHash = json_config.get<uint64_t>("mChainHash");
     cout << "HASH: " << mChainHash << endl;
     mChainPath = json_config.get<string>("mChainPath");
     cout << "Path: " << mChainPath << endl;
 
     for (auto &item : json_config.get_child("nodes")) {
-        auto id = item.second.get<int>("id");
+        int id = item.second.get<int>("id");
         string address = item.second.get<string>("host");
         auto port = item.second.get<int>("port");
-        nodes[id] = Node(address, port);
+        Node node(id, port, address);
+        nodes.insert(std::make_pair(id,node));
+//        nodes[id] = node;
     }
 }
 
 uint64_t ChainConfig::getMChainHash() const {
     return mChainHash;
-}
-
-int ChainConfig::getId() const {
-    return id;
 }
 
 unordered_map<int, Node> ChainConfig::getNodes() const {

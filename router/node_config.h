@@ -9,6 +9,7 @@ class NodeConfig {
     int id;
     std::string ip;
     int port;
+    int localPort;
     std::string chainConfigDir;
     std::string pipesDir;
 
@@ -22,6 +23,8 @@ public:
     const std::string &getIp() const;
 
     int getPort() const;
+
+    int getLocalPort() const;
 
     const std::string &getChainDir() const;
 

@@ -7,11 +7,13 @@ NODE_DIR = "/tmp/node"
 CHAINS_CONF_DIR = os.path.join(NODE_DIR, 'm_chains')
 NODE_CONF_PATH = os.path.join(NODE_DIR, "node_conf.json")
 PIPES_DIR = os.path.join(NODE_DIR, "pipes")
+LOCAL_PORT = 1122
 
 NODE_CONF = {
     "id": 1,
     "ip": "127.0.0.1",
-    "port": 1234,
+    "port": 1401,
+    "localPort": LOCAL_PORT,
     "chainConfigDir": CHAINS_CONF_DIR,
     "pipesDir": PIPES_DIR
 }
@@ -20,34 +22,16 @@ CHAIN_CONF = {
     "chain_1": {
         "mChainPath": PIPES_DIR,
         "mChainHash": "1234",
-        "id": 0,
         "nodes": [
             {
                 "id": 0,
                 "host": "127.0.0.1",
                 "port": 1400
-            }
-        ],
-        "comments": [
+            },
             {
                 "id": 1,
                 "host": "127.0.0.1",
                 "port": 1401
-            },
-            {
-                "id": 2,
-                "host": "127.0.0.1",
-                "port": 1402
-            },
-            {
-                "id": 3,
-                "host": "127.0.0.1",
-                "port": 1403
-            },
-            {
-                "id": 4,
-                "host": "127.0.0.1",
-                "port": 1404
             }
         ]
     }

@@ -10,7 +10,6 @@
 
 class ChainConfig {
     uint64_t mChainHash;
-    int id;
     std::unordered_map<int, Node> nodes;
     std::string mChainPath;
 
@@ -19,8 +18,6 @@ public:
     explicit ChainConfig(std::string confPath);
 
     boost::property_tree::ptree parseJson(std::string &confPath);
-
-    int getId() const;
 
     std::unordered_map<int, Node> getNodes() const;
 

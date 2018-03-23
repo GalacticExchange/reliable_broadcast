@@ -7,7 +7,7 @@ __old
 dependency-reduced-pom.xml
 ops/ansible/inventory
 ops/ansible/inventory_local
-
+*.retry
 
 broadcast
 broadcast.cbp
@@ -21,5 +21,3 @@ CMakeCache.txt
 
 router/router
 router/router.cbp
-
-ops/ansible/inventory

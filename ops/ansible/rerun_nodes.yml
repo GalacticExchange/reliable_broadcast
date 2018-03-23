@@ -1,0 +1,99 @@
+- hosts: all
+  gather_facts: no
+  sudo: true
+
+  tasks:
+
+    - name: Get running router process
+      shell: "ps -ef |grep router |awk '{print $2}'"
+      register: router_process
+
+    - name: Get running broadcast process
+      shell: "ps -ef |grep broadcast |awk '{print $2}'"
+      register: broadcast_process
+
+    - name: kill router process
+      shell: "kill {{ item }}"
+      with_items: "{{ router_process.stdout_lines }}"
+      ignore_errors: yes
+
+    - name: kill broadcast process
+      shell: "kill {{ item }}"
+      with_items: "{{ broadcast_process.stdout_lines }}"
+      ignore_errors: yes
+
+    - name: configure udp params
+      shell: sysctl -w net.core.wmem_default=65536 && sysctl -w net.core.wmem_max=1677216 && \
+        sysctl -w net.core.rmem_default=8388608 && sysctl -w net.core.rmem_max=1677216 && \
+        sysctl -w net.ipv4.udp_mem='4096 1019887 8388608' && sysctl -w net.ipv4.route.flush=1 && \
+        sysctl -w net.core.netdev_max_backlog=2000 && sysctl -w net.core.netdev_budget=600
+
+    - git:
+        repo: 'https://github.com/GalacticExchange/reliable_broadcast.git'
+        dest: /home/ubuntu/reliable_broadcast
+        version: master
+
+#    - name: generate dirs
+#      shell: "python init_configs.py"
+#      args:
+#        chdir: /home/ubuntu/reliable_broadcast/process_manager
+
+
+    - name: create dirs
+      file: path={{item.path}} state=directory recurse=yes
+      with_items:
+        - { path: '/tmp/node/m_chains' }
+        - { path: '/tmp/node/pipe' }
+        - { path: '/tmp/binaries' }
+
+#    - name: create chain dir
+#      file:
+#        path: /tmp/node/m_chains
+#        state: directory
+#        recurse: yes
+#
+#    - name: create pipe dir
+#      file:
+#        path: /tmp/node/pipe
+#        state: directory
+#        recurse: yes
+#
+#    - name: create binaries dir
+#      file:
+#        path: /tmp/binaries
+#        state: directory
+
+#    - name: copy node config
+#      copy:
+#        src: ../tests/nodes/{{inventory_hostname}}/node.json
+#        dest: /tmp/node/node.json
+#
+#    - name: copy chain config
+#      copy:
+#        src: ../tests/nodes/{{inventory_hostname}}/chain.json
+#        dest: /tmp/node/m_chains/chain.json
+
+    - name: copy files
+      copy: src={{ item.src }} dest={{ item.dest }}
+      with_items:
+          - { src: "../tests/nodes/{{ inventory_hostname }}/node.json", dest: '/tmp/node/node.json' }
+          - { src: "../tests/nodes/{{ inventory_hostname }}/chain.json", dest: '/tmp/node/m_chains/chain.json' }
+          - { src: '../../broadcast', dest: '/tmp/binaries/broadcast' }
+          - { src: '../../router/router', dest: '/tmp/binaries/router' }
+
+
+
+    - name: create pipes
+      shell: "python pipe_controller.py /tmp/node/node.json /tmp/node/m_chains/chain.json"
+      args:
+        chdir: /home/ubuntu/reliable_broadcast/process_manager
+
+    - name: run router
+      shell: "nohup ./router /tmp/node/node.json > /tmp/router_log &"
+      args:
+        chdir: /tmp/binaries
+
+    - name: run broadcast
+      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/router_log &"
+      args:
+        chdir: /tmp/binaries

@@ -1,7 +1,7 @@
 import os
-import logging
-import sys
 import json
+
+from logger import logger
 
 NODE_DIR = "/tmp/node"
 CHAINS_CONF_DIR = os.path.join(NODE_DIR, 'm_chains')
@@ -36,14 +36,6 @@ CHAIN_CONF = {
     }
 }
 
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-ch.setFormatter(formatter)
-logger.addHandler(ch)
-
 
 def create_dir(path):
     if not os.path.exists(path):
@@ -74,18 +66,16 @@ def make_skale_fifo(path):
         pass
 
 
-create_dir(NODE_DIR)
-create_dir(PIPES_DIR)
-create_dir(CHAINS_CONF_DIR)
+if __name__ == '__main__':
 
-# if not os.path.exists(CHAINS_CONF_DIR):
-#     logger.info('CHAINS_CONF_DIR dir not found')
-#     os.makedirs(CHAINS_CONF_DIR)
+    create_dir(NODE_DIR)
+    create_dir(PIPES_DIR)
+    create_dir(CHAINS_CONF_DIR)
 
-write_json(NODE_CONF_PATH, NODE_CONF)
+    write_json(NODE_CONF_PATH, NODE_CONF)
 
-for f in CHAIN_CONF:
-    conf_path = os.path.join(CHAINS_CONF_DIR, f)
-    fifo_path = os.path.join(PIPES_DIR, CHAIN_CONF[f]['mChainHash'])
-    make_skale_fifo(fifo_path)
-    write_json('{}.json'.format(conf_path), CHAIN_CONF[f])
+    for f in CHAIN_CONF:
+        conf_path = os.path.join(CHAINS_CONF_DIR, f)
+        fifo_path = os.path.join(PIPES_DIR, CHAIN_CONF[f]['mChainHash'])
+        make_skale_fifo(fifo_path)
+        write_json('{}.json'.format(conf_path), CHAIN_CONF[f])

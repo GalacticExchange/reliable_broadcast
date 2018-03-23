@@ -14,10 +14,18 @@ void signalHandler(int signum) {
 }
 
 
-int main() {
+int main(int argc, char *argv[]) {
 //    signal(SIGPOLL, signalHandler);
 
-    Router router("/tmp/node/node_conf.json");
+
+    string nodeConfigPath;
+    if (argc >= 2) {
+        nodeConfigPath = string(argv[1]);
+    } else {
+        nodeConfigPath = "/tmp/node/node_conf.json";
+    }
+
+    Router router(nodeConfigPath);
 
     thread routerThr([&router]() {
         router.start();

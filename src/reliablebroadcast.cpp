@@ -29,6 +29,7 @@ using std::shared_ptr;
 using std::string;
 using std::stringstream;
 using std::thread;
+using std::to_string;
 using std::unordered_map;
 using std::vector;
 
@@ -48,8 +49,9 @@ ReliableBroadcast::ReliableBroadcast(int id,
     mBroadcastSocket.open(boost::asio::ip::udp::v4());
 }
 
-ReliableBroadcast::ReliableBroadcast(NodeConfig nodeConfig, ChainConfig chainConfig) :
-        ReliableBroadcast(0,
+ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig,
+                                     const ChainConfig &chainConfig) :
+        ReliableBroadcast(nodeConfig.getId(),
                           chainConfig.getMChainHash(),
                           chainConfig.getMChainPath(),
                           chainConfig.getNodes()) {
@@ -123,7 +125,7 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
     cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
-    mRedisClient.rpush(reinterpret_cast<char *>(&mChainHash),
+    mRedisClient.rpush(to_string(mChainHash),
                        vector<string>(1,
                                       string(message->getData().begin(),
                                              message->getData().end())));

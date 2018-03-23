@@ -16,9 +16,9 @@ public:
     };
 
 private:
-    uint64_t mClientId;
-    uint64_t mNonce;
     uint64_t mMChainHash;
+    uint64_t mClientId;
+    uint64_t mNonce;    
     uint64_t mNodeId;
     MessageType mType;
     std::vector<char> mData;
@@ -49,7 +49,7 @@ public:
     void setNodeId(uint64_t id);
     void setMessageType(MessageType messageType);
 
-    static uint64_t parseMChain(std::vector<char> encoded);
+    static uint64_t parseMChain(const std::vector<char> &encoded);
 
 private:
     template <class T>

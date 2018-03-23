@@ -2,14 +2,14 @@
 
 using namespace std;
 
-ChainConfig::ChainConfig(string confPath) {
+ChainConfig::ChainConfig(const string &confPath) {
     boost::property_tree::ptree json_config;
     json_config = parseJson(confPath);
 
     initFields(json_config);
 }
 
-boost::property_tree::ptree ChainConfig::parseJson(string &confPath) {
+boost::property_tree::ptree ChainConfig::parseJson(const string &confPath) {
     boost::property_tree::ptree json_config;
     boost::property_tree::read_json(confPath, json_config);
     return json_config;

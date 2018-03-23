@@ -41,7 +41,7 @@ class ReliableBroadcast
         void removeLoop();
     };
 
-    const size_t BROADCAST_PORT = 6666;
+    const size_t BROADCAST_PORT = 1122;
 
     int mId;
     uint64_t mMChainHash;

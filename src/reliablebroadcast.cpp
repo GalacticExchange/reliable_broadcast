@@ -46,6 +46,7 @@ ReliableBroadcast::ReliableBroadcast(int id,
     mBroadcastSocket(mIoService)
 {
     mRedisClient.connect();
+    mBroadcastSocket.open(boost::asio::ip::udp::v4());
 }
 
 ReliableBroadcast::ReliableBroadcast(ChainConfig config) :
@@ -115,6 +116,10 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
     message->setNodeId(mId);
     message->setMessageType(messageType);
     shared_ptr<vector<char>> buffer = make_shared<vector<char>>(message->encode());
+    if (!mBroadcastSocket.is_open())
+    {
+        throw std::logic_error("Broadcast socket is closed");
+    }
     mBroadcastSocket.async_send_to(boost::asio::buffer(*buffer),
                                    boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(),
                                                                   BROADCAST_PORT),
@@ -123,7 +128,7 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
     {
         if (error)
         {
-            cerr << "Error on send: " << error << endl;
+            cerr << "Error on send: " << error.message() << endl;
         }
     });
     processMessage(message);
@@ -131,7 +136,7 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 
 void ReliableBroadcast::deliver(std::shared_ptr<Message> message)
 {
-//    cerr << "Deliver message with nonce " << message->getNonce() << endl;
+    cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
     mRedisClient.rpush(reinterpret_cast<char*>(&mChainHash),
                        vector<string>(1,
@@ -143,7 +148,7 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message)
 std::string ReliableBroadcast::getPipeFileName(const std::string &path) const
 {
     stringstream ss;
-    ss << path << "/m_chain_" << mMChainHash;
+    ss << path << "/" << mMChainHash;
     return ss.str();
 }
 

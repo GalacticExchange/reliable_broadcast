@@ -9,7 +9,7 @@ using namespace std;
 #include "reliablebroadcast.h"
 
 
-int main()
+int main(int argc, char *argv[])
 {
 //    thread sender([](){
 //        ofstream os("/tmp/m_chains/m_chain_5", ios::binary);
@@ -30,7 +30,15 @@ int main()
 
     srand(clock());
 
-    ChainConfig config("config.json");
+    string configFilename;
+    if (argc >= 2)
+    {
+        configFilename = string(argv[1]);
+    } else {
+        configFilename = "config.json";
+    }
+
+    ChainConfig config(configFilename);
     ReliableBroadcast(config).start();
 
 //    sender.join();

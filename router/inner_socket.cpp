@@ -1,11 +1,7 @@
 #include "inner_socket.h"
 
-#ifndef BROADCAST_LOCAL_SOCKET_CONTROLLER_H
-#define BROADCAST_LOCAL_SOCKET_CONTROLLER_H
-
-#endif //BROADCAST_LOCAL_SOCKET_CONTROLLER_H
-
 using namespace std;
+
 
 InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<int, std::vector<Node>> &mChains, int port)
         : BasicSocket(
@@ -15,7 +11,6 @@ InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<int, std::vecto
     this->mChains = &mChains;
 
 }
-
 
 void InnerSocket::onReceive(size_t length) {
     cout << "Received message length: " << length << endl;
@@ -30,6 +25,7 @@ void InnerSocket::onReceive(size_t length) {
     string str(msg.begin(), msg.end());
 
     uint64_t chainName = Message::parseMChain(*mMessage);
+    cerr << "Received broadcast request to " << chainName << " mChain" << endl;
     for (const Node &node : (*mChains)[chainName]) {
 
         cout << "broadcasting msg: " << str << " ,to party: " << node.getPort() << endl;

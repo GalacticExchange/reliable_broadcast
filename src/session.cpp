@@ -61,6 +61,7 @@ void Session::processMessage(std::shared_ptr<Message> message)
                 lock_guard<mutex> lock(mEchoMessageCounterMutex);
                 count = ++mEchoMessageCounter[make_pair(message->getNodeId(), message->getData())];
             }
+            BOOST_LOG_TRIVIAL(debug) << "Count of echo messages is equal to " << count;
             if (count >= mEchoMessageCountTarget)
             {
                 bool _false = false;
@@ -78,6 +79,7 @@ void Session::processMessage(std::shared_ptr<Message> message)
                 lock_guard<mutex> lock(mReadyMessageCounterMutex);
                 count = ++mReadyMessageCounter[make_pair(message->getNodeId(), message->getData())];
             }
+            BOOST_LOG_TRIVIAL(debug) << "Count of ready messages is equal to " << count;
             if (!mReadyMessageWasSent && count > t)
             {
                 bool _false = false;

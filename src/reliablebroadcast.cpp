@@ -92,9 +92,6 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message) {
 }
 
 void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<Message> message) {
-    BOOST_LOG_TRIVIAL(debug) << "Broadcast message of type "
-                             << message->getType() << " with nonce "
-                             << message->getNonce();
 //    cerr << "\tBrodcast ";
 //    if (message->getType() == Message::MessageType::SEND)
 //    {
@@ -109,7 +106,12 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 //    cerr << " message in session #" << message->getSessionId() << endl;
 
     message->setNodeId(mId);
-    message->setMessageType(messageType);
+    message->setMessageType(messageType);    
+
+    BOOST_LOG_TRIVIAL(debug) << "Broadcast message of type "
+                             << message->getType() << " with nonce "
+                             << message->getNonce();
+
     shared_ptr<vector<char>> buffer = make_shared<vector<char>>(message->encode());
     if (!mBroadcastSocket.is_open()) {
         throw std::logic_error("Broadcast socket is closed");

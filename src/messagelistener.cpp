@@ -16,6 +16,7 @@ using std::stringstream;
 using std::vector;
 
 #include <boost/asio.hpp>
+#include <boost/log/trivial.hpp>
 
 using boost::asio::ip::udp;
 
@@ -59,6 +60,7 @@ void MessageListener::listen()
 
 void MessageListener::onReceive(shared_ptr<vector<char>> buffer)
 {
+    BOOST_LOG_TRIVIAL(debug) << "Received " << buffer->size() << " bytes";
 //    cerr << "Received data: [";
 ////    for (size_t i = 0; i < length; ++i)
 //    for (size_t i = 0; i < 5; ++i)

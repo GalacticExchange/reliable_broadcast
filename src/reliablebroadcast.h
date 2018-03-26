@@ -65,7 +65,7 @@ public:
                       const std::string &path,
                       const std::unordered_map<int, Node> &nodes);
 
-    ReliableBroadcast(NodeConfig nodeConfig, ChainConfig chainConfig);
+    ReliableBroadcast(const NodeConfig &nodeConfig, const ChainConfig &chainConfig);
 
     void start();
 

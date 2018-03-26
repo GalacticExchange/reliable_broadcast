@@ -64,12 +64,12 @@
         chdir: /home/ubuntu/reliable_broadcast/process_manager
 
     - name: run router
-      shell: "nohup ./router /tmp/node/node.json > /tmp/node/logs/router.log &"
+      shell: "nohup ./router /tmp/node/node.json > /tmp/node/logs/router.log 2>&1 &"
       args:
         chdir: /tmp/binaries
 
     - name: run broadcast
-      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/logs/broadcast.log &"
+      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/logs/broadcast.log 2>&1 &"
       args:
         chdir: /tmp/binaries
 

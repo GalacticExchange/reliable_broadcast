@@ -33,22 +33,27 @@
         dest: /home/ubuntu/reliable_broadcast
         version: master
 
+    - name: clean dirs
+      file:
+        state: absent
+        path: /tmp/node
 
     - name: create dirs
       file: path={{item.path}} state=directory recurse=yes
       with_items:
         - { path: '/tmp/node/m_chains' }
         - { path: '/tmp/node/pipes' }
+        - { path: '/tmp/node/logs' }
         - { path: '/tmp/binaries' }
 
 
     - name: copy files
-      copy: src={{ item.src }} dest={{ item.dest }}
+      copy: src={{ item.src }} dest={{ item.dest }} mode={{ item.mode }}
       with_items:
-          - { src: "../tests/nodes/{{ inventory_hostname }}/node.json", dest: '/tmp/node/node.json' }
-          - { src: "../tests/nodes/{{ inventory_hostname }}/chain.json", dest: '/tmp/node/m_chains/chain.json' }
-          - { src: '../../broadcast', dest: '/tmp/binaries/broadcast' }
-          - { src: '../../router/router', dest: '/tmp/binaries/router' }
+          - { src: "../tests/nodes/{{ inventory_hostname }}/node.json", dest: '/tmp/node/node.json', mode: '0644' }
+          - { src: "../tests/nodes/{{ inventory_hostname }}/chain.json", dest: '/tmp/node/m_chains/chain.json', mode: '0644' }
+          - { src: '../../broadcast', dest: '/tmp/binaries/broadcast', mode: '0755'  }
+          - { src: '../../router/router', dest: '/tmp/binaries/router', mode: '0755' }
 
 
 
@@ -58,11 +63,11 @@
         chdir: /home/ubuntu/reliable_broadcast/process_manager
 
     - name: run router
-      shell: "nohup ./router /tmp/node/node.json > /tmp/node/log/router.log &"
+      shell: "nohup ./router /tmp/node/node.json > /tmp/node/logs/router.log &"
       args:
         chdir: /tmp/binaries
 
     - name: run broadcast
-      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/log/broadcast.log &"
+      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/logs/broadcast.log &"
       args:
         chdir: /tmp/binaries

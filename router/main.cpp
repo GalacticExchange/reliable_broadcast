@@ -22,7 +22,8 @@ int main(int argc, char *argv[]) {
     if (argc >= 2) {
         nodeConfigPath = string(argv[1]);
     } else {
-        nodeConfigPath = "/tmp/node/node_conf.json";
+//        nodeConfigPath = "/tmp/node/node_conf.json";
+        nodeConfigPath = "/tmp/node/node.json";
     }
 
     Router router(nodeConfigPath);

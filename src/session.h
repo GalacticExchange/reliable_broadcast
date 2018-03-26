@@ -25,9 +25,9 @@ public:
 
 
     std::mutex mEchoMessageCounterMutex;
-    std::map<std::pair<uint64_t, std::vector<char>>, size_t> mEchoMessageCounter;
+    std::map<std::vector<char>, std::unordered_set<uint64_t>> mEchoMessageCounter;
     std::mutex mReadyMessageCounterMutex;
-    std::map<std::pair<uint64_t, std::vector<char>>, size_t> mReadyMessageCounter;
+    std::map<std::vector<char>, std::unordered_set<uint64_t>> mReadyMessageCounter;
     std::atomic<bool> mReadyMessageWasSent;
     std::atomic<bool> mDelivered;
 

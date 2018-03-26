@@ -7,3 +7,5 @@ rm -rf  ../../CMakeFiles
 rm -rf  ../../router/CMakeFiles
 
 cmake --build ../../
+
+set +x

@@ -5,7 +5,8 @@ out
 parties
 __old
 dependency-reduced-pom.xml
-ops/ansible/inventory
+*inventory*
+!inventory.gpg
 ops/ansible/inventory_local
 *.retry
 

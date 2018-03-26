@@ -17,6 +17,6 @@ services:
     image: rediscommander/redis-commander:latest
     restart: always
     environment:
-    - REDIS_HOSTS=local:redis:6378
+    - REDIS_HOSTS=local:redis:6379
     ports:
     - 8081:8081

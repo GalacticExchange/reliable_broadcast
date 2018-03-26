@@ -34,9 +34,10 @@
         version: master
 
     - name: clean dirs
-      file:
-        state: absent
-        path: /tmp/node
+      file: state=absent path={{item.path}}
+      with_items:
+        - { path: '/tmp/node' }
+        - { path: '/tmp/binaries' }
 
     - name: create dirs
       file: path={{item.path}} state=directory recurse=yes

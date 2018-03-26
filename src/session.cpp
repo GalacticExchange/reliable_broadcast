@@ -1,6 +1,8 @@
 #include "reliablebroadcast.h"
 #include "session.h"
 
+#include <boost/log/trivial.hpp>
+
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -29,7 +31,11 @@ Session::Session(ReliableBroadcast &owner,
 }
 
 void Session::processMessage(std::shared_ptr<Message> message)
-{
+{    
+    BOOST_LOG_TRIVIAL(debug) << "Process message of type "
+                             << message->getType() << " with nonce "
+                             << message->getNonce();
+
 //    cerr << "Process message ";
 //    if (message->getType() == Message::MessageType::SEND)
 //    {

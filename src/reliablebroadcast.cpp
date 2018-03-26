@@ -1,6 +1,7 @@
 #include "reliablebroadcast.h"
 #include "session.h"
 
+#include <boost/log/trivial.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/pthread/shared_mutex.hpp>
 
@@ -89,6 +90,9 @@ void ReliableBroadcast::processMessage(shared_ptr<Message> message) {
 }
 
 void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<Message> message) {
+    BOOST_LOG_TRIVIAL(debug) << "Broadcast message of type "
+                             << message->getType() << " with nonce "
+                             << message->getNonce();
 //    cerr << "\tBrodcast ";
 //    if (message->getType() == Message::MessageType::SEND)
 //    {
@@ -121,7 +125,12 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 }
 
 void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
-    cerr << "Deliver message with nonce " << message->getNonce() << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Deliver message of type "
+                             << message->getType() << " with nonce "
+                             << message->getNonce() << ": ["
+                             << string(message->getData().begin(), message->getData().end())
+                             << "]";
+//    cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
     mRedisClient.rpush(reinterpret_cast<char *>(&mChainHash),
                        vector<string>(1,

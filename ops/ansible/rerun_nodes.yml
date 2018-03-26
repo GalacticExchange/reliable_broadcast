@@ -71,3 +71,8 @@
       shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/logs/broadcast.log &"
       args:
         chdir: /tmp/binaries
+
+    - name: restart compose
+      shell: "bash -c 'docker-compose down && docker-compose up -d' "
+      args:
+        chdir: /home/ubuntu/reliable_broadcast/ops/docker

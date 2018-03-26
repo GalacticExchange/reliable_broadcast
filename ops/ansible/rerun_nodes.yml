@@ -38,7 +38,7 @@
       file: path={{item.path}} state=directory recurse=yes
       with_items:
         - { path: '/tmp/node/m_chains' }
-        - { path: '/tmp/node/pipe' }
+        - { path: '/tmp/node/pipes' }
         - { path: '/tmp/binaries' }
 
 
@@ -58,11 +58,11 @@
         chdir: /home/ubuntu/reliable_broadcast/process_manager
 
     - name: run router
-      shell: "nohup ./router /tmp/node/node.json > /tmp/router_log &"
+      shell: "nohup ./router /tmp/node/node.json > /tmp/node/log/router.log &"
       args:
         chdir: /tmp/binaries
 
     - name: run broadcast
-      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/router_log &"
+      shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/log/broadcast.log &"
       args:
         chdir: /tmp/binaries

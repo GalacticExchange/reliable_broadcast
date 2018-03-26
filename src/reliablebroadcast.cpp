@@ -46,7 +46,7 @@ ReliableBroadcast::ReliableBroadcast(int id,
         mSessions(*this),
         mCommitCounter(0),
         mBroadcastSocket(mIoService) {
-    mRedisClient.connect();
+    mRedisClient.connect("127.0.0.1", 6378);
     mBroadcastSocket.open(boost::asio::ip::udp::v4());
 }
 

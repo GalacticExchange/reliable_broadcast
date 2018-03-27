@@ -4,6 +4,11 @@
 
   tasks:
 
+    - name: restart compose
+      shell: "bash -c 'docker-compose down && docker-compose up -d' "
+      args:
+        chdir: /home/ubuntu/reliable_broadcast/ops/docker
+
     - name: Get running router process
       shell: "ps -ef |grep router |awk '{print $2}'"
       register: router_process
@@ -72,8 +77,3 @@
       shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/logs/broadcast.log 2>&1 &"
       args:
         chdir: /tmp/binaries
-
-    - name: restart compose
-      shell: "bash -c 'docker-compose down && docker-compose up -d' "
-      args:
-        chdir: /home/ubuntu/reliable_broadcast/ops/docker

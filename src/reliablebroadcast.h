@@ -85,6 +85,8 @@ private:
     void processMessage(std::shared_ptr<Message> message);
 
     std::string getPipeFileName(const std::string &path) const;
+
+    void connectToRedis();
 };
 
 #endif // RELIABLEBROADCAST_H

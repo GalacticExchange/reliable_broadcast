@@ -46,7 +46,7 @@ ReliableBroadcast::ReliableBroadcast(int id,
         mSessions(*this),
         mCommitCounter(0),
         mBroadcastSocket(mIoService) {
-    mRedisClient.connect("127.0.0.1", 6378);
+    connectToRedis();
     mBroadcastSocket.open(boost::asio::ip::udp::v4());
 }
 
@@ -142,21 +142,12 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
                                           string(message->getData().begin(),
                                                  message->getData().end())));
         mRedisClient.commit();
+        cerr << endl;
     } else {
         BOOST_LOG_TRIVIAL(warning) << "Redis is disconnected. Retry to connect.";
-        mRedisClient.connect("127.0.0.1",
-                             6378,
-                             [this, message](const std::string& host,
-                                             std::size_t port,
-                                             cpp_redis::client::connect_state status)
-        {
-            if (status != cpp_redis::client::connect_state::ok)
-            {
-                BOOST_LOG_TRIVIAL(error) << "Can't connect to redis on " << host << ':' << port
-                                         << ". Got status " << static_cast<int>(status);
-            }
-            this->deliver(message);
-        });
+        cerr << endl;
+        connectToRedis();
+        deliver(message);
     }
 }
 
@@ -164,6 +155,21 @@ std::string ReliableBroadcast::getPipeFileName(const std::string &path) const {
     stringstream ss;
     ss << path << "/" << mMChainHash;
     return ss.str();
+}
+
+void ReliableBroadcast::connectToRedis()
+{
+    mRedisClient.connect("127.0.0.1",
+                         6378,
+                         [](const std::string& host,
+                            std::size_t port,
+                            cpp_redis::client::connect_state status)
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Connection status to redis on "
+                                 << host << ':' << port << " is " << status;
+    },
+                         1000,
+                         10);
 }
 
 ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner) :

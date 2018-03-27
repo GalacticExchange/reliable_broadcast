@@ -142,6 +142,22 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
                                           string(message->getData().begin(),
                                                  message->getData().end())));
         mRedisClient.commit();
+        BOOST_LOG_TRIVIAL(debug) << "Saved message to redis";
+
+        const std::chrono::seconds WINDOW_LENGTH(5);
+        double rps;
+        auto current = std::chrono::system_clock::now();
+        {
+            std::lock_guard<std::mutex> lock(mTimesMutex);
+            mMessageDeliverTimes.push(current);
+            while (!mMessageDeliverTimes.empty()
+                   && mMessageDeliverTimes.front() < current - WINDOW_LENGTH)
+            {
+                mMessageDeliverTimes.pop();
+            }
+            rps = static_cast<double>(mMessageDeliverTimes.size()) / WINDOW_LENGTH.count();
+        }
+        BOOST_LOG_TRIVIAL(debug) << "Process " << rps << " messages per second";
         cerr << endl;
     } else {
         BOOST_LOG_TRIVIAL(warning) << "Redis is disconnected. Retry to connect.";

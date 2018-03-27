@@ -57,7 +57,9 @@ class ReliableBroadcast {
     std::atomic<size_t> mCommitCounter;
     std::chrono::system_clock::time_point mStartTime;
     boost::asio::ip::udp::socket mBroadcastSocket;
-    cpp_redis::client mRedisClient;
+    cpp_redis::client mRedisClient;    
+    std::mutex mTimesMutex;
+    std::queue<std::chrono::system_clock::time_point> mMessageDeliverTimes;
 
 public:
     ReliableBroadcast(int id,

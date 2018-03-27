@@ -51,7 +51,7 @@ void MessageListener::listen()
     {
         uint16_t length;
         mInputStream.read(reinterpret_cast<char*>(&length), sizeof(length));
-        cerr << "Ready to read " << length << "bytes" << endl;
+//        cerr << "Ready to read " << length << "bytes" << endl;
         shared_ptr<vector<char>> buffer = make_shared<vector<char>>(length);
         mInputStream.read(&*buffer->begin(), length);
 

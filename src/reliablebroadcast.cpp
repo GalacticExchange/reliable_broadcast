@@ -129,18 +129,35 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 }
 
 void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
-    BOOST_LOG_TRIVIAL(debug) << "Deliver message of type "
-                             << message->getType() << " with nonce "
+    BOOST_LOG_TRIVIAL(debug) << "Deliver message with nonce "
                              << message->getNonce() << ": ["
                              << string(message->getData().begin(), message->getData().end())
                              << "]";
 //    cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
-    mRedisClient.rpush(to_string(mChainHash),
-                       vector<string>(1,
-                                      string(message->getData().begin(),
-                                             message->getData().end())));
-    mRedisClient.commit();
+    if (mRedisClient.is_connected())
+    {
+        mRedisClient.rpush(to_string(mChainHash),
+                           vector<string>(1,
+                                          string(message->getData().begin(),
+                                                 message->getData().end())));
+        mRedisClient.commit();
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << "Redis is disconnected. Retry to connect.";
+        mRedisClient.connect("127.0.0.1",
+                             6378,
+                             [this, message](const std::string& host,
+                                             std::size_t port,
+                                             cpp_redis::client::connect_state status)
+        {
+            if (status != cpp_redis::client::connect_state::ok)
+            {
+                BOOST_LOG_TRIVIAL(error) << "Can't connect to redis on " << host << ':' << port
+                                         << ". Got status " << static_cast<int>(status);
+            }
+            this->deliver(message);
+        });
+    }
 }
 
 std::string ReliableBroadcast::getPipeFileName(const std::string &path) const {

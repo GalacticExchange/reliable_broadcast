@@ -166,7 +166,7 @@ void ReliableBroadcast::connectToRedis()
                             cpp_redis::client::connect_state status)
     {
         BOOST_LOG_TRIVIAL(debug) << "Connection status to redis on "
-                                 << host << ':' << port << " is " << status;
+                                 << host << ':' << port << " is " << static_cast<int>(status);
     },
                          1000,
                          10);

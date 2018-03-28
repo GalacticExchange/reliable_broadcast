@@ -1,20 +1,22 @@
-
-
 #ifndef BROADCAST_ROUTER_H
 #define BROADCAST_ROUTER_H
 
-#include "outer_socket.h"
+#include "../src/chain_config.h"
 #include "inner_socket.h"
 #include "node_config.h"
+#include "outer_socket.h"
+#include "socket.h"
+
 #include <thread>
 
-
-#include "../src/chain_config.h"
 
 class Router {
     NodeConfig nodeConfig;
     OuterSocket outerSocket;
+//    Socket mOuterSocket;
+
     InnerSocket innerSocket;
+//    Socket mInnerSocket;
     std::unordered_map<int, std::vector<Node>> mChains;
 
     std::thread innerThread;
@@ -28,7 +30,7 @@ public:
     void start();
 
     OuterSocket &getOuterSocket();
-    InnerSocket &getInnerSocket();
+//    InnerSocket &getInnerSocket();
 
     void readChainConfigs(const std::string &configsDir);
 

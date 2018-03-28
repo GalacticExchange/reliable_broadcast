@@ -1,11 +1,32 @@
 #include "socket.h"
 
+using boost::asio::ip::udp;
+
+#include <iostream>
+
+using std::cerr;
+using std::endl;
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
 
 
-void Socket::send(const boost::asio::ip::udp::endpoint &target,
+Socket::Socket():
+    mSocket(mIoService, udp::v4())
+{
+
+}
+
+Socket::~Socket()
+{
+    mIoService.stop();
+    if (mProcessThread.joinable())
+    {
+        mProcessThread.join();
+    }
+}
+
+void Socket::send(const udp::endpoint &target,
                   shared_ptr<const vector<char>> buffer)
 {
     mSocket.async_send_to(boost::asio::buffer(*buffer), target, [buffer](
@@ -17,13 +38,13 @@ void Socket::send(const boost::asio::ip::udp::endpoint &target,
     });
 }
 
-void Socket::startListen(size_t port)
+void Socket::_startListen(size_t port)
 {
+    mSocket.bind(udp::endpoint(udp::v4(), port));
+    asyncWaitForData();
     mProcessThread = std::thread([this]()
     {
-        boost::asio::ip::udp socket(this->mIoService, port);
-        this->asyncWaitForData();
-        mIoService.run();
+        this->mIoService.run();
     });
 }
 

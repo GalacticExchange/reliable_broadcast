@@ -62,11 +62,11 @@ def main():
     #
     # return
 
-    mchain = 5
+    mchain = 1234
     client = UdpClient([(address[0], address[1]) for address in config[mchain]])
-    tester = MChainTester(5, client, [(address[0], address[2]) for address in config[mchain]])
+    tester = MChainTester(mchain, client, [(address[0], address[2]) for address in config[mchain]])
     while True:
-        tester.test(5)
+        tester.test(1)
         sleep(1)
 
 

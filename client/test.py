@@ -3,7 +3,9 @@ import itertools
 import string
 from udp_client import UdpClient
 from test_config import config
-from time import sleep
+from time import sleep, time
+from numpy import mean, std
+from redis_listener import RedisListener
 
 
 def string_generator():
@@ -35,16 +37,19 @@ class MChainTester:
         for index, redis_connection in enumerate(self._redis_connections):
             print('Check delivery for node #%d' % index)
             sent_messages_copy = set(sent_messages)
-            for _ in range(len(sent_messages)):
+            # for _ in range(len(sent_messages)):
+            while sent_messages_copy:
                 data = redis_connection.blpop(str(self._mchain_hash))
                 delivered_message = data[1].decode()
                 print('\tDelivered message \'%s\'' % delivered_message)
                 if delivered_message not in sent_messages_copy:
-                    raise KeyError('Message \'%s\' was not sent' % delivered_message)
+                    # raise KeyError('Message \'%s\' was not sent' % delivered_message)
+                    print('Message \'%s\' was not sent' % delivered_message)
                 else:
                     sent_messages_copy.remove(delivered_message)
             if sent_messages_copy:
-                raise KeyError('[' + ', '.join(sent_messages_copy) + '] were not delivered')
+                # raise KeyError('[' + ', '.join(sent_messages_copy) + '] were not delivered')
+                print('[' + ', '.join(sent_messages_copy) + '] were not delivered')
         print('OK')
 
     # private
@@ -63,10 +68,20 @@ def main():
     # return
 
     mchain = 1234
+    # mchain = 5
     client = UdpClient([(address[0], address[1]) for address in config[mchain]])
     tester = MChainTester(mchain, client, [(address[0], address[2]) for address in config[mchain]])
+    rps_list = list()
     while True:
-        tester.test(1)
+        n = 100
+        start = time()
+        tester.test(n)
+        finish = time()
+        duration = finish - start
+        rps = n / duration
+        rps_list.append(rps)
+        print('Process %d messages per second' % int(rps))
+        print('Mean %d messages per second with deviation %d' % (int(mean(rps_list)), int(std(rps_list))))
         sleep(1)
 
 

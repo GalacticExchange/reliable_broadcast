@@ -1,6 +1,7 @@
 #include "reliablebroadcast.h"
 #include "session.h"
 
+#include <boost/log/trivial.hpp>
 #include <boost/thread/locks.hpp>
 #include <boost/thread/pthread/shared_mutex.hpp>
 
@@ -45,7 +46,7 @@ ReliableBroadcast::ReliableBroadcast(int id,
         mSessions(*this),
         mCommitCounter(0),
         mBroadcastSocket(mIoService) {
-    mRedisClient.connect();
+    connectToRedis();
     mBroadcastSocket.open(boost::asio::ip::udp::v4());
 }
 
@@ -53,7 +54,7 @@ ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig,
                                      const ChainConfig &chainConfig) :
         ReliableBroadcast(nodeConfig.getId(),
                           chainConfig.getMChainHash(),
-                          chainConfig.getMChainPath(),
+                          nodeConfig.getPipesDir(),
                           chainConfig.getNodes()) {
 
 }
@@ -105,7 +106,12 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 //    cerr << " message in session #" << message->getSessionId() << endl;
 
     message->setNodeId(mId);
-    message->setMessageType(messageType);
+    message->setMessageType(messageType);    
+
+    BOOST_LOG_TRIVIAL(debug) << "Broadcast message of type "
+                             << message->getType() << " with nonce "
+                             << message->getNonce();
+
     shared_ptr<vector<char>> buffer = make_shared<vector<char>>(message->encode());
     if (!mBroadcastSocket.is_open()) {
         throw std::logic_error("Broadcast socket is closed");
@@ -123,19 +129,63 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 }
 
 void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
-    cerr << "Deliver message with nonce " << message->getNonce() << endl;
+    BOOST_LOG_TRIVIAL(debug) << "Deliver message with nonce "
+                             << message->getNonce() << ": ["
+                             << string(message->getData().begin(), message->getData().end())
+                             << "]";
+//    cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
-    mRedisClient.rpush(to_string(mChainHash),
-                       vector<string>(1,
-                                      string(message->getData().begin(),
-                                             message->getData().end())));
-    mRedisClient.commit();
+    if (mRedisClient.is_connected())
+    {
+        mRedisClient.rpush(to_string(mChainHash),
+                           vector<string>(1,
+                                          string(message->getData().begin(),
+                                                 message->getData().end())));
+        mRedisClient.commit();
+        BOOST_LOG_TRIVIAL(debug) << "Saved message to redis";
+
+        const std::chrono::seconds WINDOW_LENGTH(5);
+        double rps;
+        auto current = std::chrono::system_clock::now();
+        {
+            std::lock_guard<std::mutex> lock(mTimesMutex);
+            mMessageDeliverTimes.push(current);
+            while (!mMessageDeliverTimes.empty()
+                   && mMessageDeliverTimes.front() < current - WINDOW_LENGTH)
+            {
+                mMessageDeliverTimes.pop();
+            }
+            rps = static_cast<double>(mMessageDeliverTimes.size()) / WINDOW_LENGTH.count();
+        }
+        BOOST_LOG_TRIVIAL(debug) << "Process " << rps << " messages per second";
+        cerr << endl;
+    } else {
+        BOOST_LOG_TRIVIAL(warning) << "Redis is disconnected. Retry to connect.";
+        cerr << endl;
+        connectToRedis();
+        deliver(message);
+    }
 }
 
 std::string ReliableBroadcast::getPipeFileName(const std::string &path) const {
     stringstream ss;
     ss << path << "/" << mMChainHash;
     return ss.str();
+}
+
+void ReliableBroadcast::connectToRedis()
+{
+    mRedisClient.connect("127.0.0.1",
+                         6378,
+                         [](const std::string& host,
+                            std::size_t port,
+                            cpp_redis::client::connect_state status)
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Connection status to redis on "
+                                 << host << ':' << port << " is " << static_cast<int>(status);
+    },
+                         1000,
+                         10);
 }
 
 ReliableBroadcast::SessionsPool::SessionsPool(ReliableBroadcast &owner) :

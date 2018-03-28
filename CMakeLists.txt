@@ -15,7 +15,8 @@ file(GLOB ROUTER_FILES
 
 set(LIBS cpp_redis tacopie)
 
-find_package(Boost 1.58.0 COMPONENTS system thread REQUIRED)
+set(Boost_USE_STATIC_LIBS ON)
+find_package(Boost 1.58.0 COMPONENTS system thread log REQUIRED)
 if (Boost_FOUND)
     include_directories(${Boost_INCLUDE_DIRS})
     add_executable(${PROJECT_NAME} ${SOURCES} ${HEADERS} ${ROUTER_FILES})

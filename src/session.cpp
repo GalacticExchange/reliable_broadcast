@@ -1,6 +1,8 @@
 #include "reliablebroadcast.h"
 #include "session.h"
 
+#include <boost/log/trivial.hpp>
+
 #include <cstdlib>
 #include <iostream>
 #include <map>
@@ -29,7 +31,11 @@ Session::Session(ReliableBroadcast &owner,
 }
 
 void Session::processMessage(std::shared_ptr<Message> message)
-{
+{    
+    BOOST_LOG_TRIVIAL(debug) << "Process message of type "
+                             << message->getType() << " with nonce "
+                             << message->getNonce();
+
 //    cerr << "Process message ";
 //    if (message->getType() == Message::MessageType::SEND)
 //    {
@@ -53,8 +59,11 @@ void Session::processMessage(std::shared_ptr<Message> message)
             size_t count;
             {
                 lock_guard<mutex> lock(mEchoMessageCounterMutex);
-                count = ++mEchoMessageCounter[make_pair(message->getNodeId(), message->getData())];
+                auto &senders = mEchoMessageCounter[message->getData()];
+                senders.insert(message->getNodeId());
+                count = senders.size();
             }
+            BOOST_LOG_TRIVIAL(debug) << "Count of echo messages is equal to " << count;
             if (count >= mEchoMessageCountTarget)
             {
                 bool _false = false;
@@ -70,8 +79,11 @@ void Session::processMessage(std::shared_ptr<Message> message)
             size_t count;
             {
                 lock_guard<mutex> lock(mReadyMessageCounterMutex);
-                count = ++mReadyMessageCounter[make_pair(message->getNodeId(), message->getData())];
+                auto &senders = mReadyMessageCounter[message->getData()];
+                senders.insert(message->getNodeId());
+                count = senders.size();
             }
+            BOOST_LOG_TRIVIAL(debug) << "Count of ready messages is equal to " << count;
             if (!mReadyMessageWasSent && count > t)
             {
                 bool _false = false;

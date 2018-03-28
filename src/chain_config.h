@@ -11,7 +11,7 @@
 class ChainConfig {
     uint64_t mChainHash;
     std::unordered_map<int, Node> nodes;
-    std::string mChainPath;
+//    std::string mChainPath;
 
 public:
 
@@ -23,7 +23,7 @@ public:
 
     uint64_t getMChainHash() const;
 
-    std::string getMChainPath() const;
+//    std::string getMChainPath() const;
 
 private:
 

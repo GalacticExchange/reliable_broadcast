@@ -6,7 +6,7 @@ services:
     hostname: redis
     image: redis
     ports:
-      - "6379:6379"
+      - "6378:6379"
 #    volumes:
 #      - ../data/redis:/data
     restart: always

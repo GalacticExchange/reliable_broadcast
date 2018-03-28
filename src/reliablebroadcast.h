@@ -57,7 +57,9 @@ class ReliableBroadcast {
     std::atomic<size_t> mCommitCounter;
     std::chrono::system_clock::time_point mStartTime;
     boost::asio::ip::udp::socket mBroadcastSocket;
-    cpp_redis::client mRedisClient;
+    cpp_redis::client mRedisClient;    
+    std::mutex mTimesMutex;
+    std::queue<std::chrono::system_clock::time_point> mMessageDeliverTimes;
 
 public:
     ReliableBroadcast(int id,
@@ -85,6 +87,8 @@ private:
     void processMessage(std::shared_ptr<Message> message);
 
     std::string getPipeFileName(const std::string &path) const;
+
+    void connectToRedis();
 };
 
 #endif // RELIABLEBROADCAST_H

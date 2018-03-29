@@ -6,6 +6,8 @@ from test_config import config
 from time import sleep, time
 from numpy import mean, std
 from redis_listener import RedisListener
+from consistency_tester import ConsistencyTester
+import asyncio
 
 
 def string_generator():
@@ -67,22 +69,31 @@ def main():
     #
     # return
 
+    # mchain = 1234
+    # # mchain = 5
+    # client = UdpClient([(address[0], address[1]) for address in config[mchain]])
+    # tester = MChainTester(mchain, client, [(address[0], address[2]) for address in config[mchain]])
+    # rps_list = list()
+    # while True:
+    #     n = 100
+    #     start = time()
+    #     tester.test(n)
+    #     finish = time()
+    #     duration = finish - start
+    #     rps = n / duration
+    #     rps_list.append(rps)
+    #     print('Process %d messages per second' % int(rps))
+    #     print('Mean %d messages per second with deviation %d' % (int(mean(rps_list)), int(std(rps_list))))
+    #     sleep(1)
+
     mchain = 1234
     # mchain = 5
     client = UdpClient([(address[0], address[1]) for address in config[mchain]])
-    tester = MChainTester(mchain, client, [(address[0], address[2]) for address in config[mchain]])
-    rps_list = list()
-    while True:
-        n = 100
-        start = time()
-        tester.test(n)
-        finish = time()
-        duration = finish - start
-        rps = n / duration
-        rps_list.append(rps)
-        print('Process %d messages per second' % int(rps))
-        print('Mean %d messages per second with deviation %d' % (int(mean(rps_list)), int(std(rps_list))))
-        sleep(1)
+    loop = asyncio.get_event_loop()
+    tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
+    test_result = asyncio.ensure_future(tester.test(3, rps=100, completion_time=1), loop=loop)
+    loop.run_until_complete(test_result)
+    print(test_result.result())
 
 
 if __name__ == '__main__':

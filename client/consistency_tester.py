@@ -9,14 +9,19 @@ class ConsistencyTester(Tester):
         self.total_messages_count = {mchain: 0 for mchain in mchains}
         self.good = {mchain: 0 for mchain in mchains}
 
+    def on_test_start(self):
+        self.messages = {mchain: dict() for mchain in self.mchains}
+        self.total_messages_count = {mchain: 0 for mchain in self.mchains}
+        self.good = {mchain: 0 for mchain in self.mchains}
+
     def on_send(self, mchain, data):
-        print('Send', data, 'to', mchain)
+        # print('Send', data, 'to', mchain)
         self.total_messages_count[mchain] += 1
         message = data.decode()
         self.messages[mchain][message] = 0
 
     def on_delivery(self, mchain, node_index, data):
-        print('Deliver', data, 'of', mchain, 'on #', node_index)
+        # print('Deliver', data, 'of', mchain, 'on #', node_index)
         message = data.decode()
         count = self.messages[mchain][message] + 1
         if count == self.node_count:

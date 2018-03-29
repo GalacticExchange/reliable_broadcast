@@ -30,8 +30,10 @@ class Tester:
         self.listener.listen(mchains, redis_addresses)
 
     async def test(self, duration=10, rps=1, completion_time=5):
+        self.on_test_start()
         start_time = perf_counter()
         request_times = deque()
+        previous_rps_report_time = start_time
         while True:
             for mchain in self.mchains:
                 message = next(self.message_generator)
@@ -45,8 +47,9 @@ class Tester:
                 interval_start = max(start_time, current_time - self.time_window_sec)
                 while request_times and request_times[0] < interval_start:
                     request_times.popleft()
-                if request_times and request_times[0] < current_time:
+                if current_time - 1 > previous_rps_report_time and request_times and request_times[0] < current_time:
                     print('RPS =', len(request_times) / (current_time - request_times[0]))
+                    previous_rps_report_time = current_time
 
                 elapsed_time = current_time - interval_start
                 total_count = rps * elapsed_time
@@ -64,6 +67,9 @@ class Tester:
         pass
 
     def on_delivery(self, mchain, node_index, data):
+        pass
+
+    def on_test_start(self):
         pass
 
     def get_result(self):

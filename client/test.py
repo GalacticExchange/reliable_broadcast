@@ -8,6 +8,7 @@ from numpy import mean, std
 from redis_listener import RedisListener
 from consistency_tester import ConsistencyTester
 import asyncio
+import matplotlib.pyplot as plt
 
 
 def string_generator():
@@ -60,6 +61,56 @@ class MChainTester:
         return [redis.StrictRedis(host=address[0], port=address[1]) for address in redis_addresses]
 
 
+def test():
+    mchain = 1234
+    # mchain = 5
+    client = UdpClient([(address[0], address[1]) for address in config[mchain]])
+    loop = asyncio.get_event_loop()
+    tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
+
+    min_rps, max_rps = 1, 1200
+    test_number = 50
+    rps_axis, good, partial, lost = list(), list(), list(), list()
+    for rps in range(min_rps, max_rps, (max_rps - min_rps) // (test_number - 1)):
+        rps_axis.append(rps)
+        test_result = asyncio.ensure_future(tester.test(10, rps=rps, completion_time=3), loop=loop)
+        loop.run_until_complete(test_result)
+        _good, _partial, _lost = test_result.result()[mchain]
+        total = _good + _partial + _lost
+        good.append(_good / total)
+        partial.append(_partial / total)
+        lost.append(_lost / total)
+
+    fig, ax1 = plt.subplots()
+    ax1.plot(rps_axis, good, 'g-', label='delivered')
+    ax1.plot(rps_axis, lost, 'orange', label='lost')
+    ax1.set_xlabel('Messages per second')
+    # Make the y-axis label, ticks and tick labels match the line color.
+    ax1.set_ylabel('Share')
+    ax1.set_ylim([0, 1.1])
+    ax1.legend()
+    # ax1.tick_params('y', colors='b')
+
+    ax2 = ax1.twinx()
+    max_partial = max(partial)
+    if max_partial > 0:
+        # partial = [partial / max_partial for partial in partial]
+        ax2.set_ylim([0, max_partial * 1.1])
+    else:
+        ax2.set_ylim([0, 1.1])
+    ax2.plot(rps_axis, partial, 'r')
+    ax2.set_ylabel('Partially delivered share')
+    # ax2.tick_params('y', colors='r')
+
+    fig.tight_layout()
+    plt.show()
+
+    # plt.plot(rps_axis, good, rps_axis, partial, rps_axis, lost)
+    # plt.xlabel('Messages per second')
+    # plt.ylabel()
+    # plt.show()
+
+
 def main():
     # r = redis.StrictRedis(host='localhost', port=6379)
     # key = str(5)
@@ -86,14 +137,16 @@ def main():
     #     print('Mean %d messages per second with deviation %d' % (int(mean(rps_list)), int(std(rps_list))))
     #     sleep(1)
 
-    mchain = 1234
-    # mchain = 5
-    client = UdpClient([(address[0], address[1]) for address in config[mchain]])
-    loop = asyncio.get_event_loop()
-    tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
-    test_result = asyncio.ensure_future(tester.test(3, rps=100, completion_time=1), loop=loop)
-    loop.run_until_complete(test_result)
-    print(test_result.result())
+    test()
+
+    # mchain = 1234
+    # # mchain = 5
+    # client = UdpClient([(address[0], address[1]) for address in config[mchain]])
+    # loop = asyncio.get_event_loop()
+    # tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
+    # test_result = asyncio.ensure_future(tester.test(3, rps=1, completion_time=1), loop=loop)
+    # loop.run_until_complete(test_result)
+    # print(test_result.result())
 
 
 if __name__ == '__main__':

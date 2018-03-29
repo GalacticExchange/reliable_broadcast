@@ -26,6 +26,9 @@ file(GLOB SRC_FILES
         ../src/chain_config.cpp
         ../src/node.h
         ../src/node.cpp
+        ../src/threadsafequeue.h
+        ../src/message.h
+        ../src/message.cpp
 
 #        ../src/internalmessage.h
 #        ../src/internalmessage.cpp

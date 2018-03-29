@@ -33,6 +33,10 @@ public:
         mlock.unlock();
         mCondition.notify_one();
     }
+
+    bool isEmpty(){
+        return mQueue.empty();
+    }
 };
 
 #endif // THREADSAFEQUEUE_H

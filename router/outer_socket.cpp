@@ -3,7 +3,6 @@
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
 
 #include "outer_socket.h"
 
@@ -24,7 +23,8 @@ OuterSocket::OuterSocket(int port, std::string &fifoDir) :
 //    std::cout << "OuterSocket constructor" << std::endl;
 }
 
-
+// receives n messages
+// parse.. and pass n times to algorithm
 void OuterSocket::onReceive(size_t length) {
     std::cout << "Received message length: " << length << endl;
 
@@ -34,7 +34,6 @@ void OuterSocket::onReceive(size_t length) {
     vector<char> bytes = *mMessage;
 
     std::string mChain;
-    //todo parse mChain in a different way?
     uint64_to_string(Message::parseMChain(bytes), mChain);
 
     pipeController.sendToPipe(mChain, bytes);

@@ -5,7 +5,7 @@
 #include "outer_socket.h"
 #include "../src/node.h"
 #include "../src/message.h"
-
+#include "packet.h"
 
 class PacketProcessor {
 
@@ -19,9 +19,9 @@ public:
 
     void start();
 
-    void process();
+    void checkAndSend();
 
-    std::shared_ptr<const std::vector<char>> assemblePacket();
+    static std::shared_ptr<std::vector <std::vector<char>> > parseRawMessages(std::shared_ptr<const std::vector<char>> packet);
 };
 
 

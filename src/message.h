@@ -54,11 +54,11 @@ public:
     template <class T>
     static void write(std::vector<char>::iterator begin, size_t offset, const T &value);
 
-private:
     template <class T>
     static T parse(std::vector<char>::const_iterator begin,
                    std::vector<char>::const_iterator end,
                    size_t offset);
+private:
 
 };
 

@@ -4,24 +4,32 @@
 #include "../src/threadsafequeue.h"
 #include "outer_socket.h"
 #include "../src/node.h"
-#include "../src/message.h"
 #include "packet.h"
+
+
+using namespace std;
 
 class PacketProcessor {
 
     OuterSocket *outerSocket;
-    ThreadSafeQueue<std::vector<char>> *queue;
-    std::vector<Node> chainNodes;
-    std::vector<std::vector<char> > pendingMessages;
+
+    //{nodeId, queue}
+    unordered_map<int, ThreadSafeQueue<vector<char>>> queues;
+
+    //{nodeId, node}
+    unordered_map<int, Node> nodes;
+
+    //{nodeId, msgs}
+    unordered_map<int, vector<vector<char> > > pendingMessages;
 
 public:
-    PacketProcessor(OuterSocket &outerSocket, ThreadSafeQueue<std::vector<char>> &queue, std::vector<Node> &chainNodes);
+    PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char>>> &queues,
+                    vector<Node> &nodes);
 
     void start();
 
-    void checkAndSend();
+    void send();
 
-    static std::shared_ptr<std::vector <std::vector<char>> > parseRawMessages(std::shared_ptr<const std::vector<char>> packet);
 };
 
 

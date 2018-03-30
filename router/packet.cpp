@@ -19,10 +19,10 @@ shared_ptr<const vector<char>> Packet::createPacket(vector<vector<char>> &encode
 
     vector<char> buffer(total_size);
     size_t offset = 0;
-    Message::write<typeof(amount)>(buffer.begin(), offset, amount);
+    Packet::write<typeof(amount)>(buffer.begin(), offset, amount);
     offset += sizeof(amount);
     for (int len : lengths) {
-        Message::write<typeof(len)>(buffer.begin(), offset, len);
+        Packet::write<typeof(len)>(buffer.begin(), offset, len);
         offset += sizeof(len);
     }
     copy(packet.begin(), packet.end(), buffer.begin() + offset);
@@ -40,23 +40,38 @@ shared_ptr<vector<vector<char>>> Packet::parsePacket(shared_ptr<const vector<cha
     vector<vector<char> > rawMessages;
 
     size_t offset = 0;
-    auto amount = Message::parse<int>(packet.get()->begin(), packet.get()->end(), offset);
+    auto amount = Packet::parse<int>(packet.get()->begin(), packet.get()->end(), offset);
     offset += sizeof(amount);
 
     vector<int> lengths;
     for (int i = 0; i < amount; i++) {
 
-        auto len = Message::parse<int>(packet.get()->begin(), packet.get()->end(), offset);
+        auto len = Packet::parse<int>(packet.get()->begin(), packet.get()->end(), offset);
         lengths.push_back(len);
 
         offset += sizeof(len);
     }
 
     for (auto len : lengths) {
-        vector<char> rawMessage = Message::parse<vector<char> >(packet.get()->begin(), packet.get()->end(), offset);
+        vector<char> rawMessage = Packet::parse<vector<char> >(packet.get()->begin(), packet.get()->end(), offset);
         rawMessages.push_back(rawMessage);
         offset += len;
     }
 
-    return make_shared(rawMessages);
+    return make_shared<vector<vector<char>>>(rawMessages);
+}
+
+template<class T>
+void Packet::write(vector<char>::iterator begin, size_t offset, const T &value)
+{
+    copy(reinterpret_cast<const char*>(&value),
+         reinterpret_cast<const char*>(&value) + sizeof(T),
+         &*begin + offset);
+}
+
+template<class T>
+T Packet::parse(std::vector<char>::const_iterator begin, std::vector<char>::const_iterator end, size_t offset) {
+    T value;
+    copy(&*begin + offset, &*begin + offset + sizeof(T), reinterpret_cast<char*>(&value));
+    return value;
 }

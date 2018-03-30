@@ -2,11 +2,15 @@
 
 using namespace std;
 
-PacketProcessor::PacketProcessor(OuterSocket &outerSocket, ThreadSafeQueue<std::vector<char>> &queue,
+PacketProcessor::PacketProcessor(OuterSocket &outerSocket,
+                                 std::unordered_map<int, ThreadSafeQueue<std::vector<char> >>  &queues,
                                  std::vector<Node> &nodes) {
     this->outerSocket = &outerSocket;
-    this->queue = &queue;
-    this->chainNodes = nodes;
+    this->queues = queues;
+
+    for (auto &node :nodes) {
+        this->nodes[node.getId()] = node;
+    }
 }
 
 
@@ -18,22 +22,28 @@ PacketProcessor::PacketProcessor(OuterSocket &outerSocket, ThreadSafeQueue<std::
 
 void PacketProcessor::start() {
     for (;;) {
-        vector<char> msg = queue->pop();
-        pendingMessages.push_back(msg);
-        checkAndSend();
+        cout << "tying to pop message..." << endl;
+        sleep(5);
+        //todo flag lock wait
+
+
+//        // todo shuffle queues
+//        for (auto &idQueue : queues) {
+//            vector<vector<char>> drained = idQueue.second.drainTo(5); //todo create drainTo
+//            pendingMessages[idQueue.first].insert(pendingMessages[idQueue.first].end(), drained.begin(), drained.end());
+//        }
+//
+//        send();
     }
 }
 
 #pragma clang diagnostic pop
 
-void PacketProcessor::checkAndSend() {
-    if (pendingMessages.size() < 5 && !queue->isEmpty()) {
-        return;
-    }
-    shared_ptr<const vector<char>> packet = Packet::createPacket(pendingMessages);
+void PacketProcessor::send() {
 
-    for (const Node &node : chainNodes) {
-        boost::asio::ip::udp::endpoint endpoint = node.getEndpoint();
-        outerSocket->send(endpoint, packet);
-    }
+//    for (auto &idVector: pendingMessages) {
+//        shared_ptr<const vector<char>> packet = Packet::createPacket(idVector.second);
+//        boost::asio::ip::udp::endpoint endpoint = nodes[idVector.first].getEndpoint();
+//        outerSocket->send(endpoint, packet);
+//    }
 }

@@ -15,7 +15,7 @@ class Router {
     NodeConfig nodeConfig;
     OuterSocket outerSocket;
     InnerSocket innerSocket;
-    std::unordered_map<int, std::vector<Node>> mChains;
+    std::unordered_map<uint64_t , std::vector<Node>> mChains;
 
     std::thread innerThread;
     std::thread outerThread;

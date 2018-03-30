@@ -1,8 +1,8 @@
 {
   "id": 1,
   "ip":"127.0.0.1",
-  "port":1400,
-  "localPort":1122,
+  "port":1401,
+  "localPort":1123,
   "chainConfigDir":"/tmp/node/m_chains",
   "pipesDir": "/tmp/node/pipes"
 }

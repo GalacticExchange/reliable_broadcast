@@ -18,31 +18,23 @@ int main(int argc, char *argv[]) {
 //    signal(SIGPOLL, signalHandler);
 
 
-    vector<int> arr;
-    arr.push_back(5);
-    arr.push_back(10);
-    arr.push_back(15);
-
-
-    cout << arr.size() << endl;
-    cout << sizeof(int) << endl;
-
-//    string nodeConfigPath;
-//    if (argc >= 2) {
-//        nodeConfigPath = string(argv[1]);
-//    } else {
+    string nodeConfigPath;
+    if (argc >= 2) {
+        nodeConfigPath = string(argv[1]);
+    } else {
 //        nodeConfigPath = "/tmp/node/node.json";
-//    }
-//
-//    Router router(nodeConfigPath);
-//
-//    thread routerThr([&router]() {
-//        router.start();
-//    });
-//
-//    sendTestMessage(router);
-//    sendTestLocalMessage(router.getInnerSocket());
-//    routerThr.join();
+        nodeConfigPath = "../node_config.json";
+    }
+
+    Router router(nodeConfigPath);
+
+    thread routerThr([&router]() {
+        router.start();
+    });
+
+    sendTestMessage(router);
+    sendTestLocalMessage(router.getInnerSocket());
+    routerThr.join();
 
     return 0;
 }

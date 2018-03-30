@@ -68,14 +68,18 @@ def test():
     loop = asyncio.get_event_loop()
     tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
 
-    min_rps, max_rps = 1, 1200
-    test_number = 50
+    min_rps, max_rps = 750, 770
+    test_number = 20
     rps_axis, good, partial, lost = list(), list(), list(), list()
     for rps in range(min_rps, max_rps, (max_rps - min_rps) // (test_number - 1)):
-        rps_axis.append(rps)
         test_result = asyncio.ensure_future(tester.test(10, rps=rps, completion_time=3), loop=loop)
         loop.run_until_complete(test_result)
-        _good, _partial, _lost = test_result.result()[mchain]
+
+        test_result = test_result.result()
+        counters, rps = test_result
+        rps_axis.append(rps)
+
+        _good, _partial, _lost = counters[mchain]
         total = _good + _partial + _lost
         good.append(_good / total)
         partial.append(_partial / total)

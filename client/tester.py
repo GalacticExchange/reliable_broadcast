@@ -33,7 +33,9 @@ class Tester:
         self.on_test_start()
         start_time = perf_counter()
         request_times = deque()
+        total_messages_count = 0
         previous_rps_report_time = start_time
+        print('Start testing')
         while True:
             for mchain in self.mchains:
                 message = next(self.message_generator)
@@ -43,6 +45,7 @@ class Tester:
 
                 current_time = perf_counter()
                 request_times.append(current_time)
+                total_messages_count += 1
 
                 interval_start = max(start_time, current_time - self.time_window_sec)
                 while request_times and request_times[0] < interval_start:
@@ -60,8 +63,10 @@ class Tester:
 
             if current_time > start_time + duration:
                 break
+        print('Wait for completion', end='', flush=True)
         await asyncio.sleep(completion_time)
-        return self.get_result()
+        print('\rDone')
+        return self.get_result(), total_messages_count / (current_time - start_time)
 
     def on_send(self, mchain, data):
         pass

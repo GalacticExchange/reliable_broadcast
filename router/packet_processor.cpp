@@ -3,13 +3,14 @@
 using namespace std;
 
 PacketProcessor::PacketProcessor(OuterSocket &outerSocket,
-                                 std::unordered_map<int, ThreadSafeQueue<std::vector<char> >>  &queues,
-                                 std::vector<Node> &nodes) {
+                                 std::unordered_map<int, ThreadSafeQueue<vector<char> > >  &queues,
+                                 std::vector<Node> &nodes) :
+    queues(queues)
+{
     this->outerSocket = &outerSocket;
-    this->queues = queues;
 
-    for (auto &node :nodes) {
-        this->nodes[node.getId()] = node;
+    for (auto &n : nodes) {
+        this->nodes[n.getId()] = n;
     }
 }
 
@@ -28,18 +29,19 @@ void PacketProcessor::start() {
 
 
 //        // todo shuffle queues
-//        for (auto &idQueue : queues) {
-//            vector<vector<char>> drained = idQueue.second.drainTo(5); //todo create drainTo
-//            pendingMessages[idQueue.first].insert(pendingMessages[idQueue.first].end(), drained.begin(), drained.end());
-//        }
-//
-//        send();
+        for (auto &idQueue : queues) {
+            vector<vector<char>> drained = idQueue.second.drainTo(5); //todo create drainTo
+            pendingMessages[idQueue.first].insert(pendingMessages[idQueue.first].end(), drained.begin(), drained.end());
+        }
+
+        send();
     }
 }
 
 #pragma clang diagnostic pop
 
 void PacketProcessor::send() {
+    cout << "pendingMessages size: " << pendingMessages.size() << endl;
 
 //    for (auto &idVector: pendingMessages) {
 //        shared_ptr<const vector<char>> packet = Packet::createPacket(idVector.second);

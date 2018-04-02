@@ -14,16 +14,16 @@ class PacketProcessor {
     OuterSocket *outerSocket;
 
     //{nodeId, queue}
-    unordered_map<int, ThreadSafeQueue<vector<char>>> queues;
+    unordered_map<int, ThreadSafeQueue<vector<char> > > &queues;
 
     //{nodeId, node}
     unordered_map<int, Node> nodes;
 
-    //{nodeId, msgs}
+    //{nodeId, msgs[]}
     unordered_map<int, vector<vector<char> > > pendingMessages;
 
 public:
-    PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char>>> &queues,
+    PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,
                     vector<Node> &nodes);
 
     void start();

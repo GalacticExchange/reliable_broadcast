@@ -17,22 +17,22 @@ boost::property_tree::ptree NodeConfig::parseJson(std::string &confPath) {
 
 void NodeConfig::initFields(const boost::property_tree::ptree &json_config) {
     id = json_config.get<int>("id");
-    cout << "Node config ID: " << id << endl;
+//    cout << "Node config ID: " << id << endl;
 
     ip = json_config.get<string>("ip");
-    cout << "Node config IP: " << ip << endl;
+//    cout << "Node config IP: " << ip << endl;
 
     port = json_config.get<int>("port");
-    cout << "Node config PORT: " << port << endl;
+//    cout << "Node config PORT: " << port << endl;
 
     localPort = json_config.get<int>("localPort");
-    cout << "Node config localPort: " << localPort << endl;
+//    cout << "Node config localPort: " << localPort << endl;
 
     chainConfigDir = json_config.get<string>("chainConfigDir");
-    cout << "Node config chainConfigDir: " << chainConfigDir << endl;
+//    cout << "Node config chainConfigDir: " << chainConfigDir << endl;
 
     pipesDir = json_config.get<string>("pipesDir");
-    cout << "Node config pipesDir: " << pipesDir << endl;
+//    cout << "Node config pipesDir: " << pipesDir << endl;
 
 
 }

@@ -10,6 +10,7 @@ Router::Router(std::string nodeConfigPath) :
 
 //    signal(SIGPOLL, this->pollHandler);
     readChainConfigs(nodeConfig.getChainDir());
+    innerSocket.updateQueues();
 }
 
 OuterSocket &Router::getOuterSocket() {

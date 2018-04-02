@@ -11,6 +11,8 @@ class Node {
     int id;
 
 public:
+
+    Node() = default;
     Node(int nodeId, int port, const std::string &address = "0.0.0.0");
 
     std::string getAddress() const;

@@ -18,13 +18,14 @@ class InnerSocket : public BasicSocket {
     unordered_map<uint64_t, vector<Node>> *mChains;
 
     OuterSocket *outerSocket;
-//    unordered_map<int, ThreadSafeQueue<vector<char> > > sendQueues;
+    unordered_map<int, ThreadSafeQueue <vector<char> > > sendQueues;
     thread packetProcessorThr;
 
 
 public:
     InnerSocket(OuterSocket &outerSocket, unordered_map<uint64_t, vector<Node>> &mChains, int port);
 
+    void updateQueues();
 
     void onReceive(size_t length) override;
 

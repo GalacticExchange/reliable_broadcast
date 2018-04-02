@@ -10,14 +10,6 @@ InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<uint64_t, vecto
     this->mChains = &mChains;
 
 
-//    packetProcessor = thread([this, mChains] {
-//        cout << "test" << endl;
-//        PacketProcessor p(*(this->outerSocket),
-//                            *(this->sendQueues[mChains.begin()->first].get()),
-//                            (*(this->mChains))[mChains.begin()->first]);
-//    });
-    cout << "test2" << endl;
-
 }
 
 void InnerSocket::onReceive(size_t length) {
@@ -42,4 +34,27 @@ void InnerSocket::onReceive(size_t length) {
 //        boost::asio::ip::udp::endpoint endpoint = node.getEndpoint();
 //        outerSocket->send(endpoint, mMessage);
 //    }
+}
+
+void InnerSocket::updateQueues() {
+
+    for (auto &keyValue : *(mChains)) {
+        for (Node &n : keyValue.second) {
+            // initializing queues
+            sendQueues[n.getId()];
+        }
+    }
+
+//    for (auto &keyValue : sendQueues) {
+//        cout << "sendQueue key: " << keyValue.first << endl;
+//    }
+
+    packetProcessorThr = thread([this] {
+        cout << "test" << endl;
+        PacketProcessor p(*(this->outerSocket),
+                          this->sendQueues,
+                          (*(this->mChains))[mChains->begin()->first]);
+        p.start();
+    });
+
 }

@@ -9,6 +9,7 @@ from redis_listener import RedisListener
 from consistency_tester import ConsistencyTester
 import asyncio
 import matplotlib.pyplot as plt
+from udp_client import AsyncUdpClient
 
 
 def string_generator():
@@ -68,7 +69,7 @@ def test():
     loop = asyncio.get_event_loop()
     tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
 
-    min_rps, max_rps = 750, 770
+    min_rps, max_rps = 700, 800
     test_number = 20
     rps_axis, good, partial, lost = list(), list(), list(), list()
     for rps in range(min_rps, max_rps, (max_rps - min_rps) // (test_number - 1)):
@@ -141,7 +142,7 @@ def main():
     #     print('Mean %d messages per second with deviation %d' % (int(mean(rps_list)), int(std(rps_list))))
     #     sleep(1)
 
-    test()
+    # test()
 
     # mchain = 1234
     # # mchain = 5
@@ -151,6 +152,12 @@ def main():
     # test_result = asyncio.ensure_future(tester.test(3, rps=1, completion_time=1), loop=loop)
     # loop.run_until_complete(test_result)
     # print(test_result.result())
+
+    mchain = 1234
+    loop = asyncio.get_event_loop()
+    client = AsyncUdpClient([(address[0], address[1]) for address in config[mchain]], loop)
+    client.send(mchain, 'Test message'.encode())
+    loop.run_forever()
 
 
 if __name__ == '__main__':

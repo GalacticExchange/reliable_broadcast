@@ -35,7 +35,7 @@ class Tester:
         request_times = deque()
         total_messages_count = 0
         previous_rps_report_time = start_time
-        print('Start testing')
+        print('Start testing with target rps =', rps)
         while True:
             for mchain in self.mchains:
                 message = next(self.message_generator)
@@ -63,10 +63,11 @@ class Tester:
 
             if current_time > start_time + duration:
                 break
+        average_rps = total_messages_count / (current_time - start_time)
         print('Wait for completion', end='', flush=True)
         await asyncio.sleep(completion_time)
-        print('\rDone')
-        return self.get_result(), total_messages_count / (current_time - start_time)
+        print('\rDone with avarage rps =', average_rps)
+        return self.get_result(), average_rps
 
     def on_send(self, mchain, data):
         pass

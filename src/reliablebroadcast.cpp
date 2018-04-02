@@ -167,6 +167,14 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
     }
 }
 
+void ReliableBroadcast::asyncProcessMessage(std::shared_ptr<Message> message)
+{
+    mIoService.post([this, message]()
+    {
+        this->processMessage(message);
+    });
+}
+
 std::string ReliableBroadcast::getPipeFileName(const std::string &path) const {
     stringstream ss;
     ss << path << "/" << mMChainHash;
@@ -219,7 +227,7 @@ void ReliableBroadcast::SessionsPool::remove(Session::Id sessionId) {
 
 void ReliableBroadcast::SessionsPool::removeLoop() {
     while (true) {
-        pair<uint64_t, system_clock::time_point> task = mRemoveQueue.pop();
+        pair<Session::Id, system_clock::time_point> task = mRemoveQueue.pop();
         std::this_thread::sleep_until(task.second);
         remove(task.first);
     }

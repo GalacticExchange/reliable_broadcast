@@ -14,6 +14,7 @@ using std::cerr;
 using std::cout;
 using std::dynamic_pointer_cast;
 using std::endl;
+using std::hash;
 using std::lock_guard;
 using std::make_shared;
 using std::map;
@@ -136,23 +137,9 @@ struct BitLenght<0>
     enum { value = 0 };
 };
 
-Session::Id Session::getRandomId()
-{
-    Id random = 0;
-    for (size_t bits = 0; bits < sizeof(Id); bits += BitLenght<RAND_MAX>::value)
-    {
-        random <<= BitLenght<RAND_MAX>::value;
-        random ^= rand();
-    }
-    return random;
-}
-
 Session::Id Session::getId(std::shared_ptr<Message> message)
 {
-    Id id = message->getClientId();
-    auto nonce = message->getNonce();
-    id = (id << sizeof(nonce)) ^ nonce;
-    return id;
+    return Id(message->getMChainHash(), message->getClientId(), message->getNonce());
 }
 
 shared_ptr<vector<char> > Session::calculateMessageHash(
@@ -194,4 +181,38 @@ size_t Session::getEchoMessageCountTarget(size_t n, size_t t)
 void Session::deliver(std::shared_ptr<Message> message)
 {
     mOwner.deliver(message);
+}
+
+namespace std {
+
+template<>
+class hash<const uint64_t>
+{
+public:
+    size_t operator () (const uint64_t &value)
+    {
+        return hash<uint64_t>()(value);
+    }
+};
+
+}
+
+size_t std::hash<Session::Id>::operator ()(const Session::Id &id) const
+{
+    return hash<typeof(id.mMChainHash)>()(id.mMChainHash)
+            ^ hash<typeof(id.mClientId)>()(id.mClientId)
+            ^ hash<typeof(id.mNonce)>()(id.mNonce);
+}
+
+Session::Id::Id(uint64_t mChainHash, uint64_t clientId, uint64_t nonce):
+    mMChainHash(mChainHash),
+    mClientId(clientId),
+    mNonce(nonce)
+{
+
+}
+
+bool Session::Id::operator == (const Session::Id &id) const
+{
+    return mMChainHash == id.mMChainHash && mClientId == id.mClientId && mNonce == id.mNonce;
 }

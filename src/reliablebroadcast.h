@@ -23,9 +23,9 @@ class ReliableBroadcast {
     class SessionsPool {
         const size_t REMOVE_DELAY_SEC = 10;
         mutable boost::shared_mutex mSessionsMutex;
-        std::unordered_map<uint64_t, std::shared_ptr<Session>> mSessions;
+        std::unordered_map<Session::Id, std::shared_ptr<Session>> mSessions;
         ReliableBroadcast &mOwner;
-        ThreadSafeQueue<std::pair<uint64_t, std::chrono::system_clock::time_point>> mRemoveQueue;
+        ThreadSafeQueue<std::pair<Session::Id, std::chrono::system_clock::time_point>> mRemoveQueue;
         std::thread mRemovingThread;
 
     public:
@@ -80,6 +80,8 @@ public:
     void broadcast(Message::MessageType messageType, std::shared_ptr<Message> message);
 
     void deliver(std::shared_ptr<Message> message);
+
+    void asyncProcessMessage(std::shared_ptr<Message> message);
 
 private:
     void asyncProcessMessage();

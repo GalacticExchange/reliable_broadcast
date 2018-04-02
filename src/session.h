@@ -15,7 +15,19 @@ class ReliableBroadcast;
 class Session
 {
 public:
-    typedef __int128 Id;
+    class Id
+    {
+        friend class std::hash<Id>;
+
+        uint64_t mMChainHash;
+        uint64_t mClientId;
+        uint64_t mNonce;
+
+    public:
+        Id(uint64_t mChainHash, uint64_t clientId, uint64_t nonce);
+
+        bool operator == (const Id &id) const;
+    };
 
     const Id mId;
     const size_t n;
@@ -35,8 +47,7 @@ public:
     Session(ReliableBroadcast &owner, Id id);
 
     void processMessage(std::shared_ptr<Message> message);
-    Id getId() const;
-    static Id getRandomId();
+    Id getId() const;    
     static Id getId(std::shared_ptr<Message> message);
 
 private:
@@ -48,5 +59,16 @@ private:
     static size_t getEchoMessageCountTarget(size_t n, size_t t);
     void deliver(std::shared_ptr<Message> message);
 };
+
+namespace std {
+
+template<>
+class hash<Session::Id>
+{
+public:
+    size_t operator () (const Session::Id &id) const;
+};
+
+}
 
 #endif // SESSION_H

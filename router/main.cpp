@@ -5,7 +5,7 @@ using namespace std;
 
 void sendTestMessage(Router &router);
 
-void sendTestLocalMessage(InnerSocket &innerSocket);
+void sendTestLocalMessage(size_t port);
 
 
 void signalHandler(int signum) {
@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
     });
 
     sendTestMessage(router);
-    sendTestLocalMessage(router.getInnerSocket());
+    sendTestLocalMessage(router.getNodeConfig().getLocalPort());
     routerThr.join();
 
     return 0;
@@ -56,7 +56,9 @@ void sendTestMessage(Router &router) {
 }
 
 
-void sendTestLocalMessage(InnerSocket &innerSocket) {
+void sendTestLocalMessage(size_t port) {
+    Socket socket;
+//    socket.startListen(5556, [](std::shared_ptr<std::vector<char>> buffer){});
 
     std::string str = "hello world!";
     std::vector<char> data(str.begin(), str.end());
@@ -65,9 +67,10 @@ void sendTestLocalMessage(InnerSocket &innerSocket) {
 
     boost::asio::ip::udp::endpoint targetEndpoint(
             boost::asio::ip::address::from_string("127.0.0.1"),
-            static_cast<unsigned short>(innerSocket.getPort()));
+            static_cast<unsigned short>(port));
 
     shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
 
-    innerSocket.send(targetEndpoint, charMessagePtr);
+    socket.send(targetEndpoint, charMessagePtr);
+    sleep(1);
 }

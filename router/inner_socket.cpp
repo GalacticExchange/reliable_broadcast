@@ -8,6 +8,8 @@ InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<uint64_t, vecto
 
     this->outerSocket = &outerSocket;
     this->mChains = &mChains;
+    this->packetProcessor = make_shared<PacketProcessor>(*(this->outerSocket),
+                                                         this->sendQueues);
 
 
 }
@@ -21,11 +23,14 @@ void InnerSocket::onReceive(size_t length) {
     vector<char> msg = *mMessage;
 
     uint64_t chainName = Message::parseMChain(*mMessage);
-    cerr << "Received broadcast request to " << chainName << " mChain" << endl;
+//    cout << "Received broadcast request to " << chainName << " mChain" << endl;
 
     for (const Node &node : (*mChains)[chainName]) {
         sendQueues[node.getId()].push(msg);
     }
+
+    // todo
+//    packetProcessor->notify();
 }
 
 void InnerSocket::updateQueues() {
@@ -34,14 +39,13 @@ void InnerSocket::updateQueues() {
         for (Node &n : keyValue.second) {
             // initializing queues
             sendQueues[n.getId()];
+
+            packetProcessor->addNode(n);
         }
     }
 
     packetProcessorThr = thread([this] {
-        PacketProcessor p(*(this->outerSocket),
-                          this->sendQueues,
-                          (*(this->mChains))[mChains->begin()->first]);
-        p.start();
+        this->packetProcessor->start();
     });
 
 }

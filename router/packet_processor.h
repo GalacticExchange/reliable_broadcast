@@ -24,9 +24,12 @@ class PacketProcessor {
 
     default_random_engine rng;
 
+    std::condition_variable cv;
+    std::mutex mx;
+
 public:
     PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,
-                    vector<Node> &nodes);
+                    const vector<Node> &nodes = vector<Node>());
 
     void start();
 
@@ -34,6 +37,9 @@ public:
 
     vector<int> getShuffledKeys();
 
+    void addNode(Node &n);
+
+    void notify();
 };
 
 

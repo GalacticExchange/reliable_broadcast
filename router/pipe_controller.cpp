@@ -18,7 +18,7 @@ void PipeController::updatePipes() {
     for (const string &name: pipeNames) {
         string key = FileUtils::getBaseName(name);
         if (!hasPipe(key)) {
-            cout << "Adding fd of pipe " << key << endl;
+//            cout << "Adding fd of pipe " << key << endl;
             pipes[key] = open(name.c_str(), O_RDWR);
         }
     }

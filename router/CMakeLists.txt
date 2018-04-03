@@ -27,27 +27,6 @@ file(GLOB SRC_FILES
         ../src/node.h
         ../src/node.cpp
         ../src/threadsafequeue.h
-
-#        ../src/internalmessage.h
-#        ../src/internalmessage.cpp
-#        ../src/externalmessage.h
-#        ../src/externalmessage.cpp
-#        ../src/sendmessage.h
-#        ../src/sendmessage.cpp
-#        ../src/echomessage.h
-#        ../src/echomessage.cpp
-#        ../src/readymessage.h
-#        ../src/readymessage.cpp
-#        ../src/hashmessage.h
-#        ../src/hashmessage.cpp
-#        ../src/session.h
-#        ../src/session.cpp
-#        ../src/reliablebroadcast.h
-#        ../src/reliablebroadcast.cpp
-#        ../src/node.h
-#        ../src/node.cpp
-#        ../src/messagelistener.h
-#        ../src/messagelistener.cpp
         )
 
 

@@ -20,6 +20,10 @@ class InnerSocket : public BasicSocket {
     OuterSocket *outerSocket;
     unordered_map<int, ThreadSafeQueue <vector<char> > > sendQueues;
     thread packetProcessorThr;
+    shared_ptr<PacketProcessor> packetProcessor;
+
+
+//    PacketProcessor packetProcessor;
 
 
 public:
@@ -28,6 +32,7 @@ public:
     void updateQueues();
 
     void onReceive(size_t length) override;
+
 
 };
 

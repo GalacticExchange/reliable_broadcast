@@ -3,8 +3,8 @@
 using namespace std;
 
 PacketProcessor::PacketProcessor(OuterSocket &outerSocket,
-                                 std::unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,
-                                 std::vector<Node> &nodes) :
+                                 unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,
+                                 const vector<Node> &nodes) :
         queues(queues) {
     this->outerSocket = &outerSocket;
 
@@ -28,9 +28,6 @@ void PacketProcessor::start() {
         sleep(5); //todo flag lock wait
 
 
-        // todo shuffle queues
-//        random_shuffle(queues.begin(), queues.end());
-
         for (auto key : getShuffledKeys()){
             cout << key << endl;
             vector<vector<char>> drained = queues[key].drainTo(5);
@@ -39,15 +36,6 @@ void PacketProcessor::start() {
                                                       drained.end());
             }
         }
-
-//        for (auto &idQueue : queues) {
-//            cout << idQueue.first << endl;
-//            vector<vector<char>> drained = idQueue.second.drainTo(5);
-//            if (!drained.empty()) {
-//                pendingMessages[idQueue.first].insert(pendingMessages[idQueue.first].end(), drained.begin(),
-//                                                      drained.end());
-//            }
-//        }
 
         send();
     }
@@ -80,4 +68,8 @@ vector<int> PacketProcessor::getShuffledKeys() {
 
     std::shuffle(keys.begin(), keys.end(), rng);
     return keys;
+}
+
+void PacketProcessor::addNode(Node &n) {
+    this->nodes[n.getId()] = n;
 }

@@ -40,7 +40,6 @@ public:
         std::vector<T> elements;
 
         if (mQueue.empty()) {
-            std::cout << "empty queue" << std::endl; //todo
             return elements;
         }
 

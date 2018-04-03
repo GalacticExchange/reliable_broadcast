@@ -22,6 +22,8 @@ class PacketProcessor {
     //{nodeId, msgs[]}
     unordered_map<int, vector<vector<char> > > pendingMessages;
 
+    default_random_engine rng;
+
 public:
     PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,
                     vector<Node> &nodes);
@@ -29,6 +31,8 @@ public:
     void start();
 
     void send();
+
+    vector<int> getShuffledKeys();
 
 };
 

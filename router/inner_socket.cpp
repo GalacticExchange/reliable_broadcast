@@ -20,20 +20,12 @@ void InnerSocket::onReceive(size_t length) {
 
     vector<char> msg = *mMessage;
 
-    auto message = Message::parse(msg.begin(), msg.end());
-
-//    string str(msg.begin(), msg.end());
-
     uint64_t chainName = Message::parseMChain(*mMessage);
     cerr << "Received broadcast request to " << chainName << " mChain" << endl;
-//    sendQueues[chainName]->push(msg); //todo
 
-//    for (const Node &node : (*mChains)[chainName]) {
-//
-////        cout << "broadcasting msg: " << str << " ,to party: " << node.getPort() << endl;
-//        boost::asio::ip::udp::endpoint endpoint = node.getEndpoint();
-//        outerSocket->send(endpoint, mMessage);
-//    }
+    for (const Node &node : (*mChains)[chainName]) {
+        sendQueues[node.getId()].push(msg);
+    }
 }
 
 void InnerSocket::updateQueues() {
@@ -45,12 +37,7 @@ void InnerSocket::updateQueues() {
         }
     }
 
-//    for (auto &keyValue : sendQueues) {
-//        cout << "sendQueue key: " << keyValue.first << endl;
-//    }
-
     packetProcessorThr = thread([this] {
-        cout << "test" << endl;
         PacketProcessor p(*(this->outerSocket),
                           this->sendQueues,
                           (*(this->mChains))[mChains->begin()->first]);

@@ -3,8 +3,9 @@
 
 #include "message.h"
 #include "node.h"
-#include "messagelistener.h"
+#include "packet_manager.h"
 #include "session.h"
+#include "socket_controller.h"
 #include "threadsafequeue.h"
 #include "chain_config.h"
 #include "../router/node_config.h"
@@ -49,8 +50,9 @@ class ReliableBroadcast {
 
     int mId;
     uint64_t mMChainHash;
-    std::unordered_map<int, Node> mNodes;
-    MessageListener mMessageListener;
+    std::unordered_map<int, Node> mNodes;    
+    SocketController mSocketController;
+    PacketManager mPacketManager;
     boost::asio::io_service mIoService;
     SessionsPool mSessions;
     ThreadSafeQueue<std::shared_ptr<std::vector<char>>> mMessageQueue;
@@ -65,7 +67,8 @@ public:
     ReliableBroadcast(int id,
                       uint64_t mChainHash,
                       const std::string &path,
-                      const std::unordered_map<int, Node> &nodes);
+                      const std::unordered_map<int, Node> &nodes,
+                      size_t listen_port);
 
     ReliableBroadcast(const NodeConfig &nodeConfig, const ChainConfig &chainConfig);
 

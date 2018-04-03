@@ -1,3 +1,4 @@
+#include "packet_manager.h"
 #include "reliablebroadcast.h"
 #include "session.h"
 
@@ -38,11 +39,13 @@ using std::vector;
 ReliableBroadcast::ReliableBroadcast(int id,
                                      uint64_t mChainHash,
                                      const string &path,
-                                     const unordered_map<int, Node> &nodes) :
+                                     const unordered_map<int, Node> &nodes,
+                                     size_t listen_port) :
         mId(id),
         mMChainHash(mChainHash),
         mNodes(nodes),
-        mMessageListener(getPipeFileName(path), *this),
+        mSocketController(listen_port),
+        mPacketManager(mIoService, *this, mSocketController),
         mSessions(*this),
         mCommitCounter(0),
         mBroadcastSocket(mIoService) {
@@ -55,7 +58,8 @@ ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig,
         ReliableBroadcast(nodeConfig.getId(),
                           chainConfig.getMChainHash(),
                           nodeConfig.getPipesDir(),
-                          chainConfig.getNodes()) {
+                          chainConfig.getNodes(),
+                          nodeConfig.getPort()) {
 
 }
 
@@ -67,7 +71,13 @@ void ReliableBroadcast::start() {
             this->mIoService.run();
         });
     }
-    mMessageListener.listen();
+
+    mSocketController.listen([this](std::vector<char>::const_iterator begin,
+                                    std::vector<char>::const_iterator end)
+    {
+        this->mPacketManager.asyncProcess(begin, end);
+    });
+
     for (auto &thread : pool) {
         thread.join();
     }
@@ -112,19 +122,8 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
                              << message->getType() << " with nonce "
                              << message->getNonce();
 
-    shared_ptr<vector<char>> buffer = make_shared<vector<char>>(message->encode());
-    if (!mBroadcastSocket.is_open()) {
-        throw std::logic_error("Broadcast socket is closed");
-    }
-    mBroadcastSocket.async_send_to(boost::asio::buffer(*buffer),
-                                   boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(),
-                                                                  BROADCAST_PORT),
-                                   [buffer](const boost::system::error_code &error,
-                                            std::size_t) {
-                                       if (error) {
-                                           cerr << "Error on send: " << error.message() << endl;
-                                       }
-                                   });
+    mPacketManager.asyncBroadcast(message);
+
     processMessage(message);
 }
 

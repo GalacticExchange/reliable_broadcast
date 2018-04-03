@@ -1,4 +1,5 @@
 #include "packet_manager.h"
+#include "reliablebroadcast.h"
 
 using boost::asio::io_service;
 
@@ -8,14 +9,22 @@ using std::vector;
 
 PacketManager::PacketManager(io_service &io_service,
                              ReliableBroadcast &reliableBroadcast,
-                             SocketController &SocketController)
+                             SocketController &socketController):
+    mIoService(io_service),
+    mReliableBroadcast(reliableBroadcast),
+    mSocketController(socketController)
 {
-    throw std::logic_error("Not implemented");
+
 }
 
-void PacketManager::asyncProcess(shared_ptr<const vector<char> > buffer)
+void PacketManager::asyncProcess(vector<char>::const_iterator begin,
+                                 vector<char>::const_iterator end)
 {
-    throw std::logic_error("Not implemented");
+    mIoService.post([this, begin, end]()
+    {
+        this->mReliableBroadcast.asyncProcessMessage(
+                    Message::parse(begin, end));
+    });
 }
 
 void PacketManager::asyncBroadcast(shared_ptr<Message> message)

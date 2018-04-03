@@ -1,24 +1,25 @@
 #ifndef PACKET_MANAGER_H
 #define PACKET_MANAGER_H
 
-#include "reliablebroadcast.h"
+#include "message.h"
+#include "socket_controller.h"
 
 
-class SocketController
-{
-public:
-    void asyncSend(const boost::asio::ip::udp::endpoint &target,
-                   std::shared_ptr<const std::vector<char>> buffer);
-};
+class ReliableBroadcast;
 
 class PacketManager
 {
+    boost::asio::io_service &mIoService;
+    ReliableBroadcast &mReliableBroadcast;
+    SocketController &mSocketController;
+
 public:
     PacketManager(boost::asio::io_service &io_service,
                   ReliableBroadcast &reliableBroadcast,
-                  SocketController &SocketController);
+                  SocketController &socketController);
 
-    void asyncProcess(std::shared_ptr<const std::vector<char>> buffer);
+    void asyncProcess(std::vector<char>::const_iterator begin,
+                      std::vector<char>::const_iterator end);
     void asyncBroadcast(std::shared_ptr<Message> message);
 };
 

@@ -6,7 +6,7 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 #include <unordered_map>
-
+#include <iostream>
 
 class ChainConfig {
     uint64_t mChainHash;

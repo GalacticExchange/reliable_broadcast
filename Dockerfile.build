@@ -1,0 +1,21 @@
+FROM gcc:latest
+
+RUN apt-get update && apt-get install -y \
+    cmake \
+    libboost-all-dev \
+
+# Redis lib
+RUN git clone https://github.com/Cylix/cpp_redis.git && \
+    cd cpp_redis && \
+    git submodule init && git submodule update && \
+    mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release && \
+    make && \
+    make install
+
+
+# todo
+#COPY . /reliable_broadcast
+#WORKDIR /reliable_broadcast
+#
+#RUN cd ops/ansible && ./build.sh

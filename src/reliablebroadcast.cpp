@@ -36,35 +36,17 @@ using std::unordered_map;
 using std::vector;
 
 
-ReliableBroadcast::ReliableBroadcast(int id,
-                                     uint64_t mChainHash,
-                                     const string &path,
-                                     const unordered_map<int, Node> &nodes,
-                                     size_t listen_port) :
-        mId(id),
-        mMChainHash(mChainHash),
-        mNodes(nodes),
-        mSocketController(listen_port),
-        mPacketManager(mIoService, *this, mSocketController),
-        mSessions(*this),
-        mCommitCounter(0),
-        mBroadcastSocket(mIoService) {
-    connectToRedis();
-    mBroadcastSocket.open(boost::asio::ip::udp::v4());
-}
-
-ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig,
-                                     const ChainConfig &chainConfig) :
-        ReliableBroadcast(nodeConfig.getId(),
-                          chainConfig.getMChainHash(),
-                          nodeConfig.getPipesDir(),
-                          chainConfig.getNodes(),
-                          nodeConfig.getPort()) {
+ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig):
+    mNodeConfig(nodeConfig),
+    mSocketController(nodeConfig.getPort()),
+    mPacketManager(mIoService, *this, mSocketController, nodeConfig),
+    mSessions(*this)
+{
 
 }
 
 void ReliableBroadcast::start() {
-    asyncProcessMessage();
+    boost::asio::io_service::work service(mIoService);
     vector<thread> pool;
     for (size_t i = 0; i < thread::hardware_concurrency(); ++i) {
         pool.emplace_back([this]() {
@@ -81,19 +63,6 @@ void ReliableBroadcast::start() {
     for (auto &thread : pool) {
         thread.join();
     }
-}
-
-void ReliableBroadcast::postMessage(std::shared_ptr<vector<char>> buffer) {
-    mMessageQueue.push(buffer);
-}
-
-void ReliableBroadcast::asyncProcessMessage() {
-    mIoService.post([this]() {
-        shared_ptr<vector<char>> buffer = mMessageQueue.pop();
-        asyncProcessMessage();
-        shared_ptr<Message> message = Message::parse(buffer->begin(), buffer->end());
-        processMessage(message);
-    });
 }
 
 void ReliableBroadcast::processMessage(shared_ptr<Message> message) {
@@ -115,7 +84,7 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 //    }
 //    cerr << " message in session #" << message->getSessionId() << endl;
 
-    message->setNodeId(mId);
+    message->setNodeId(mNodeConfig.getId());
     message->setMessageType(messageType);    
 
     BOOST_LOG_TRIVIAL(debug) << "Broadcast message of type "
@@ -174,16 +143,10 @@ void ReliableBroadcast::asyncProcessMessage(std::shared_ptr<Message> message)
     });
 }
 
-std::string ReliableBroadcast::getPipeFileName(const std::string &path) const {
-    stringstream ss;
-    ss << path << "/" << mMChainHash;
-    return ss.str();
-}
-
 void ReliableBroadcast::connectToRedis()
 {
-    mRedisClient.connect("127.0.0.1",
-                         6378,
+    mRedisClient.connect(mNodeConfig.getRedisHost(),
+                         mNodeConfig.getRedisPort(),
                          [](const std::string& host,
                             std::size_t port,
                             cpp_redis::client::connect_state status)
@@ -258,6 +221,6 @@ void ReliableBroadcast::SessionsPool::removeSession(Session::Id sessionId) {
             system_clock::now() + std::chrono::seconds(REMOVE_DELAY_SEC)));
 }
 
-size_t ReliableBroadcast::getNodesCount() const {
-    return mNodes.size();
+size_t ReliableBroadcast::getNodesCount(uint64_t mChainHash) const {
+    return mNodeConfig.getChainConfig(mChainHash).getNodes().size();
 }

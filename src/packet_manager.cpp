@@ -9,10 +9,12 @@ using std::vector;
 
 PacketManager::PacketManager(io_service &io_service,
                              ReliableBroadcast &reliableBroadcast,
-                             SocketController &socketController):
+                             SocketController &socketController,
+                             const NodeConfig &nodeConfig):
     mIoService(io_service),
     mReliableBroadcast(reliableBroadcast),
-    mSocketController(socketController)
+    mSocketController(socketController),
+    mNodeConfig(nodeConfig)
 {
 
 }

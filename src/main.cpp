@@ -1,12 +1,9 @@
+#include "reliablebroadcast.h"
+
 #include <iostream>
 #include <unordered_map>
 
 using namespace std;
-
-//#include <boost/property_tree/ptree.hpp>
-//#include <boost/property_tree/json_parser.hpp>
-
-#include "reliablebroadcast.h"
 
 
 int main(int argc, char *argv[]) {
@@ -42,7 +39,8 @@ int main(int argc, char *argv[]) {
 
     NodeConfig nodeConfig(nodeConfigPath);
     ChainConfig chainConfig(chainConfigPath);
-    ReliableBroadcast(nodeConfig, chainConfig).start();
+    nodeConfig.setChainConfig(chainConfig.getMChainHash(), move(chainConfig));
+    ReliableBroadcast(nodeConfig).start();
 
 //    sender.join();
 

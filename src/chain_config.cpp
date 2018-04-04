@@ -35,7 +35,7 @@ uint64_t ChainConfig::getMChainHash() const {
     return mChainHash;
 }
 
-unordered_map<int, Node> ChainConfig::getNodes() const {
+const unordered_map<int, Node> &ChainConfig::getNodes() const {
     return nodes;
 }
 

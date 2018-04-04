@@ -8,7 +8,7 @@
 #include "socket_controller.h"
 #include "threadsafequeue.h"
 #include "chain_config.h"
-#include "../router/node_config.h"
+#include "node_config.h"
 
 #include <boost/asio.hpp>
 #include <boost/thread/pthread/shared_mutex.hpp>
@@ -46,53 +46,29 @@ class ReliableBroadcast {
         void removeLoop();
     };
 
-    const size_t BROADCAST_PORT = 1122;
+    const NodeConfig &mNodeConfig;
+    boost::asio::io_service mIoService;
 
-    int mId;
-    uint64_t mMChainHash;
-    std::unordered_map<int, Node> mNodes;    
     SocketController mSocketController;
     PacketManager mPacketManager;
-    boost::asio::io_service mIoService;
     SessionsPool mSessions;
-    ThreadSafeQueue<std::shared_ptr<std::vector<char>>> mMessageQueue;
-    std::atomic<size_t> mCommitCounter;
-    std::chrono::system_clock::time_point mStartTime;
-    boost::asio::ip::udp::socket mBroadcastSocket;
-    cpp_redis::client mRedisClient;    
+
+    cpp_redis::client mRedisClient;
     std::mutex mTimesMutex;
     std::queue<std::chrono::system_clock::time_point> mMessageDeliverTimes;
 
 public:
-    ReliableBroadcast(int id,
-                      uint64_t mChainHash,
-                      const std::string &path,
-                      const std::unordered_map<int, Node> &nodes,
-                      size_t listen_port);
-
-    ReliableBroadcast(const NodeConfig &nodeConfig, const ChainConfig &chainConfig);
+    ReliableBroadcast(const NodeConfig &nodeConfig);
 
     void start();
-
     void stop();
-
-    void postMessage(std::shared_ptr<std::vector<char>> buffer);
-
-    size_t getNodesCount() const;
-
+    size_t getNodesCount(uint64_t mChainHash) const;
     void broadcast(Message::MessageType messageType, std::shared_ptr<Message> message);
-
     void deliver(std::shared_ptr<Message> message);
-
     void asyncProcessMessage(std::shared_ptr<Message> message);
 
 private:
-    void asyncProcessMessage();
-
     void processMessage(std::shared_ptr<Message> message);
-
-    std::string getPipeFileName(const std::string &path) const;
-
     void connectToRedis();
 };
 

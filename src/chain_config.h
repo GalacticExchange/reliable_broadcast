@@ -5,13 +5,13 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+
 #include <unordered_map>
 
 
 class ChainConfig {
     uint64_t mChainHash;
     std::unordered_map<int, Node> nodes;
-//    std::string mChainPath;
 
 public:
 
@@ -19,11 +19,9 @@ public:
 
     boost::property_tree::ptree parseJson(const std::string &confPath);
 
-    std::unordered_map<int, Node> getNodes() const;
+    const std::unordered_map<int, Node> &getNodes() const;
 
     uint64_t getMChainHash() const;
-
-//    std::string getMChainPath() const;
 
 private:
 

@@ -27,6 +27,7 @@ public:
         Id(uint64_t mChainHash, uint64_t clientId, uint64_t nonce);
 
         bool operator == (const Id &id) const;
+        uint64_t getMChainHash() const;
     };
 
     const Id mId;

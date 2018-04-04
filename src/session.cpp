@@ -115,7 +115,7 @@ Session::Id Session::getId() const
 Session::Session(Id id,
                  ReliableBroadcast &owner):
     mId(id),
-    n(owner.getNodesCount()),
+    n(owner.getNodesCount(id.getMChainHash())),
     t(Session::getT(n)),
     mEchoMessageCountTarget(Session::getEchoMessageCountTarget(n, t)),
     mOwner(owner),
@@ -215,4 +215,9 @@ Session::Id::Id(uint64_t mChainHash, uint64_t clientId, uint64_t nonce):
 bool Session::Id::operator == (const Session::Id &id) const
 {
     return mMChainHash == id.mMChainHash && mClientId == id.mClientId && mNonce == id.mNonce;
+}
+
+uint64_t Session::Id::getMChainHash() const
+{
+    return mMChainHash;
 }

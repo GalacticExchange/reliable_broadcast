@@ -50,9 +50,19 @@ void sendTestMessage(Router &router) {
             boost::asio::ip::address::from_string("127.0.0.1"),
             static_cast<unsigned short>(router.getNodeConfig().getPort()));
 
-    shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
+//    shared_ptr<vector<char>> charMessagePtr = make_shared<vector<char>>(message.encode());
+//    router.getOuterSocket().send(targetEndpoint, charMessagePtr);
 
-    router.getOuterSocket().send(targetEndpoint, charMessagePtr);
+    vector< vector<char> > msgs;
+    msgs.push_back(message.encode());
+    shared_ptr<const vector<char>> packet = Packet::createPacket(msgs);
+
+    vector<char> ztest = *packet;
+    string s(ztest.begin(), ztest.end());
+    cout << s << endl;
+
+    router.getOuterSocket().send(targetEndpoint, packet);
+
 }
 
 

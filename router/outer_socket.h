@@ -7,7 +7,7 @@
 
 #include "pipe_controller.h"
 #include "basic_socket.h"
-
+#include "packet.h"
 
 class OuterSocket : public BasicSocket {
 

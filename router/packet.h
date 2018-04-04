@@ -23,6 +23,7 @@ public:
      */
     static shared_ptr<vector<vector<char>>> parsePacket(shared_ptr<const vector<char>> packet);
 
+private:
     template <class T>
     static void write(vector<char>::iterator begin, size_t offset, const T &value);
 

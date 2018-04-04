@@ -30,7 +30,8 @@ void InnerSocket::onReceive(size_t length) {
     }
 
     // todo
-//    packetProcessor->notify();
+    packetProcessor->notify();
+    cout << "notified from inner socket" << endl;
 }
 
 void InnerSocket::updateQueues() {

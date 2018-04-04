@@ -25,17 +25,24 @@ void PacketProcessor::start() {
     for (;;) {
         cout << "tying to pop message..." << endl;
 
-        sleep(5); //todo flag lock wait
+        //sleep(5); //todo flag lock wait
+
+        std::unique_lock<std::mutex> lock(pMutex);
+//        while (mQueue.empty()) {
+        condition.wait(lock);
+//        }
 
 
-        for (auto key : getShuffledKeys()){
+        for (auto key : getShuffledKeys()) {
             cout << key << endl;
             vector<vector<char>> drained = queues[key].drainTo(5);
             if (!drained.empty()) {
                 pendingMessages[key].insert(pendingMessages[key].end(), drained.begin(),
-                                                      drained.end());
+                                            drained.end());
             }
         }
+
+        lock.unlock();
 
         send();
     }
@@ -72,4 +79,11 @@ vector<int> PacketProcessor::getShuffledKeys() {
 
 void PacketProcessor::addNode(Node &n) {
     this->nodes[n.getId()] = n;
+}
+
+void PacketProcessor::notify() {
+    std::unique_lock<std::mutex> lock(pMutex);
+//    //todo?
+//    lock.unlock();
+    condition.notify_one();
 }

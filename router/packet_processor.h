@@ -24,8 +24,8 @@ class PacketProcessor {
 
     default_random_engine rng;
 
-    std::condition_variable cv;
-    std::mutex mx;
+    std::condition_variable condition;
+    std::mutex pMutex;
 
 public:
     PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,

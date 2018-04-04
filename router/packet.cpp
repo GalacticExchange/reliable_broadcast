@@ -49,7 +49,6 @@ shared_ptr<vector<vector<char>>> Packet::parsePacket(shared_ptr<const vector<cha
     }
 
     for (auto len : lengths) {
-//        vector<char> rawMessage = Packet::parse<vector<char> >(x.begin(), x.end(), offset);
         vector<char> rawMessage = vector<char>(x.begin() + offset, x.end());
         rawMessages.push_back(rawMessage);
         offset += len;

@@ -29,7 +29,6 @@ void InnerSocket::onReceive(size_t length) {
         sendQueues[node.getId()].push(msg);
     }
 
-    // todo
     packetProcessor->notify();
     cout << "notified from inner socket" << endl;
 }

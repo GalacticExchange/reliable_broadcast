@@ -83,7 +83,7 @@ void PacketProcessor::addNode(Node &n) {
 
 void PacketProcessor::notify() {
     std::unique_lock<std::mutex> lock(pMutex);
-//    //todo?
+//    todo?
 //    lock.unlock();
     condition.notify_one();
 }

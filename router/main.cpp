@@ -42,9 +42,12 @@ int main(int argc, char *argv[]) {
 void sendTestMessage(Router &router) {
 
     std::string str = "hello world!";
+    std::string str2 = "hello 2world!";
     std::vector<char> data(str.begin(), str.end());
+    std::vector<char> data2(str2.begin(), str2.end());
 
     Message message(1, 150, 1234, 4, Message::MessageType::SEND, static_cast<vector<char> &&>(data));
+    Message message2(1, 150, 1234, 4, Message::MessageType::SEND, static_cast<vector<char> &&>(data2));
 
     boost::asio::ip::udp::endpoint targetEndpoint(
             boost::asio::ip::address::from_string("127.0.0.1"),
@@ -55,11 +58,12 @@ void sendTestMessage(Router &router) {
 
     vector< vector<char> > msgs;
     msgs.push_back(message.encode());
+    msgs.push_back(message2.encode());
     shared_ptr<const vector<char>> packet = Packet::createPacket(msgs);
 
     vector<char> ztest = *packet;
     string s(ztest.begin(), ztest.end());
-    cout << s << endl;
+    cout << "Test sending packet: " << s << endl;
 
     router.getOuterSocket().send(targetEndpoint, packet);
 

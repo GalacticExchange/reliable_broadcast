@@ -33,6 +33,12 @@ void OuterSocket::onReceive(size_t length) {
     for (vector<char> &rawMsg : parsed) {
         std::string mChain;
         uint64_to_string(Message::parseMChain(rawMsg), mChain);
+
+        shared_ptr<Message> msgPtr = Message::parse(rawMsg.begin(), rawMsg.end());
+        vector<char> data = msgPtr.get()->getData();
+        string test(data.begin(),data.end());
+        cout << "Message parsed: " << test << endl; //todo
+
         pipeController.sendToPipe(mChain, rawMsg);
     }
 

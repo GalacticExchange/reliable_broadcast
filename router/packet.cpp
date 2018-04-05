@@ -1,5 +1,7 @@
 
 #include "packet.h"
+#include <iostream>
+
 
 using namespace std;
 
@@ -49,9 +51,10 @@ shared_ptr<vector<vector<char>>> Packet::parsePacket(shared_ptr<const vector<cha
     }
 
     for (auto len : lengths) {
-        vector<char> rawMessage = vector<char>(x.begin() + offset, x.end());
+        vector<char> rawMessage = vector<char>(packet.get()->begin() + offset, packet.get()->begin() + offset + len);
         rawMessages.push_back(rawMessage);
         offset += len;
+        cout << "len: " << len << endl;
     }
 
     return make_shared<vector<vector<char>>>(rawMessages);

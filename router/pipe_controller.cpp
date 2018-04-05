@@ -29,9 +29,9 @@ void PipeController::sendToPipe(const string &pipeName, vector<char> bytes) {
         cout << "Pipe: " << pipeName + " - not found" << endl;
         return;
     }
-    cout << "Pipe: sending length " << endl;
+//    cout << "Pipe: sending length " << endl;
     auto length = static_cast<uint16_t>(bytes.size());
     write(pipes[pipeName], reinterpret_cast<char *>(&length), sizeof(length));
-    cout << "Pipe: sending message " << endl;
+//    cout << "Pipe: sending message " << endl;
     write(pipes[pipeName], bytes.data(), bytes.size());
 }

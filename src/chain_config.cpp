@@ -17,17 +17,12 @@ boost::property_tree::ptree ChainConfig::parseJson(const string &confPath) {
 
 void ChainConfig::initFields(boost::property_tree::ptree json_config) {
     mChainHash = json_config.get<uint64_t>("mChainHash");
-    cout << "HASH: " << mChainHash << endl;
-//    mChainPath = json_config.get<string>("mChainPath");
-//    cout << "Path: " << mChainPath << endl;
-
     for (auto &item : json_config.get_child("nodes")) {
         int id = item.second.get<int>("id");
         string address = item.second.get<string>("ip");
         auto port = item.second.get<int>("port");
         Node node(id, port, address);
         nodes.insert(std::make_pair(id,node));
-//        nodes[id] = node;
     }
 }
 

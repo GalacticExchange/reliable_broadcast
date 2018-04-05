@@ -34,9 +34,9 @@ void PacketManager::asyncBroadcast(shared_ptr<Message> message)
 {
     mIoService.post([this, message]()
     {
-        const ChainConfig &chainConfig = mNodeConfig.getChainConfig(message->getMChainHash());
+        auto chainConfig_ptr = mNodeConfig.getChainConfig(message->getMChainHash());
         shared_ptr<vector<char>> buffer = make_shared<vector<char>>(move(message->encode()));
-        for (const auto &id_node : chainConfig.getNodes())
+        for (const auto &id_node : chainConfig_ptr->getNodes())
         {
             if (mNodeConfig.getId() != id_node.first)
             {

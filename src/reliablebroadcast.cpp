@@ -222,5 +222,5 @@ void ReliableBroadcast::SessionsPool::removeSession(Session::Id sessionId) {
 }
 
 size_t ReliableBroadcast::getNodesCount(uint64_t mChainHash) const {
-    return mNodeConfig.getChainConfig(mChainHash).getNodes().size();
+    return mNodeConfig.getChainConfig(mChainHash)->getNodes().size();
 }

@@ -3,7 +3,14 @@
 
 #include <boost/log/trivial.hpp>
 
+using boost::shared_lock;
+using boost::shared_mutex;
+using boost::unique_lock;
+
+using std::cerr;
+using std::endl;
 using std::make_pair;
+using std::make_shared;
 using std::move;
 using std::string;
 using std::vector;
@@ -54,17 +61,17 @@ void NodeConfig::initFields(const boost::property_tree::ptree &json_config) {
     mRedisPort = json_config.get<size_t>("redisPort");
     BOOST_LOG_TRIVIAL(info) << "Node config redisPort: " << mRedisPort;
 
-    readChainConfigs(mChainConfigDir);
-    std::cerr << std::endl;
+    readChainConfigs();
 }
 
-void NodeConfig::readChainConfigs(const string &configsDir)
+void NodeConfig::readChainConfigs()
 {
-    vector<string> configs = FileUtils::listFiles(configsDir);
+    vector<string> configs = FileUtils::listFiles(mChainConfigDir);
     for (const string &configPath : configs) {
         ChainConfig chainConfig(configPath);
         setChainConfig(chainConfig.getMChainHash(), move(chainConfig));
     }
+    cerr << endl;
 }
 
 int NodeConfig::getId() const {
@@ -87,20 +94,22 @@ const string &NodeConfig::getPipesDir() const {
     return mPipesDir;
 }
 
-const ChainConfig &NodeConfig::getChainConfig(uint64_t chainHash) const
+std::shared_ptr<const ChainConfig> NodeConfig::getChainConfig(uint64_t chainHash) const
 {
-    auto config_ptr = mChainConfigs.find(chainHash);
-    if (config_ptr == mChainConfigs.end())
+    shared_lock<shared_mutex> lock(mChainConfigsMutex);
+    auto config_iterator = mChainConfigs.find(chainHash);
+    if (config_iterator == mChainConfigs.end())
     {
         throw std::logic_error("Request config of non existing chain");
     }
-    return config_ptr->second;
+    return config_iterator->second;
 }
 
 void NodeConfig::setChainConfig(uint64_t chainHash, ChainConfig &&chainConfig)
 {
     BOOST_LOG_TRIVIAL(info) << "Set config for chain #" << chainHash;
-    mChainConfigs.insert(make_pair(chainHash, move(chainConfig)));
+    unique_lock<shared_mutex> lock(mChainConfigsMutex);
+    mChainConfigs[chainHash] = make_shared<ChainConfig>(move(chainConfig));
 }
 
 void NodeConfig::setChainConfig(uint64_t chainHash, const ChainConfig &chainConfig)

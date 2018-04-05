@@ -5,6 +5,7 @@
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+#include <boost/thread.hpp>
 
 #include <unordered_map>
 
@@ -17,7 +18,8 @@ class NodeConfig {
     std::string mPipesDir;
     std::string mRedisHost;
     size_t mRedisPort;
-    std::unordered_map<uint64_t, ChainConfig> mChainConfigs;
+    mutable boost::shared_mutex mChainConfigsMutex;
+    std::unordered_map<uint64_t, std::shared_ptr<ChainConfig>> mChainConfigs;
 
 public:
     explicit NodeConfig(const std::string &configPath);
@@ -29,15 +31,15 @@ public:
     int getLocalPort() const;
     const std::string &getChainDir() const;
     const std::string &getPipesDir() const;
-    const ChainConfig &getChainConfig(uint64_t chainHash) const;
+    std::shared_ptr<const ChainConfig> getChainConfig(uint64_t chainHash) const;
     void setChainConfig(uint64_t chainHash, ChainConfig && chainConfig);
     void setChainConfig(uint64_t chainHash, const ChainConfig &chainConfig);
     std::string getRedisHost() const;
     size_t getRedisPort() const;
+    void readChainConfigs();
 
 private:
     void initFields(const boost::property_tree::ptree &json_config);
-    void readChainConfigs(const std::string &configsDir);
 };
 
 #endif //BROADCAST_NODE_CONFIG_H

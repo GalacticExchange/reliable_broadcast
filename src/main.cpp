@@ -26,20 +26,15 @@ int main(int argc, char *argv[]) {
 
     srand(clock());
 
-    string nodeConfigPath;
-    string chainConfigPath;
+    string nodeConfigPath;    
 
-    if (argc >= 3) {
-        nodeConfigPath = string(argv[1]);
-        chainConfigPath = string(argv[2]);
+    if (argc >= 2) {
+        nodeConfigPath = string(argv[1]);        
     } else {
         nodeConfigPath = "node_config.json";
-        chainConfigPath = "chain_config.json";
     }
 
-    NodeConfig nodeConfig(nodeConfigPath);
-    ChainConfig chainConfig(chainConfigPath);
-    nodeConfig.setChainConfig(chainConfig.getMChainHash(), move(chainConfig));
+    NodeConfig nodeConfig(nodeConfigPath);    
     ReliableBroadcast(nodeConfig).start();
 
 //    sender.join();

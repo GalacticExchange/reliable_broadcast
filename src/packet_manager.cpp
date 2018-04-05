@@ -3,6 +3,7 @@
 
 using boost::asio::io_service;
 
+using std::make_shared;
 using std::shared_ptr;
 using std::vector;
 
@@ -31,5 +32,16 @@ void PacketManager::asyncProcess(vector<char>::const_iterator begin,
 
 void PacketManager::asyncBroadcast(shared_ptr<Message> message)
 {
-    throw std::logic_error("Not implemented");
+    mIoService.post([this, message]()
+    {
+        const ChainConfig &chainConfig = mNodeConfig.getChainConfig(message->getMChainHash());
+        shared_ptr<vector<char>> buffer = make_shared<vector<char>>(move(message->encode()));
+        for (const auto &id_node : chainConfig.getNodes())
+        {
+            if (mNodeConfig.getId() != id_node.first)
+            {
+                mSocketController.asyncSend(id_node.second.getEndpoint(), buffer);
+            }
+        }
+    });
 }

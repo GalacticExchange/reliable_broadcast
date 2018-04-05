@@ -21,10 +21,10 @@ class Message:
                    + int(0).to_bytes(8, byteorder='little') \
                    + self.message_type.to_bytes(1, byteorder='little') \
                    + self.data
-
+        print(f'buffer len: {int(len(m_buffer))}')
         return \
-            int(1).to_bytes(8, byteorder='little') + \
-            int(len(m_buffer)).to_bytes(8, byteorder='little') + \
+            int(1).to_bytes(4, byteorder='little') + \
+            int(len(m_buffer)).to_bytes(4, byteorder='little') + \
             m_buffer
 
     def encode(self):

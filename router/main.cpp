@@ -32,8 +32,8 @@ int main(int argc, char *argv[]) {
         router.start();
     });
 
-    sendTestMessage(router);
-    sendTestLocalMessage(router.getInnerSocket());
+//    sendTestMessage(router);
+//    sendTestLocalMessage(router.getInnerSocket());
     routerThr.join();
 
     return 0;

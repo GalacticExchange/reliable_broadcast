@@ -31,8 +31,8 @@ class Message:
                    + self.data
 
         return \
-            int(1).to_bytes(8, byteorder='little') + \
-            int(len(m_buffer)).to_bytes(8, byteorder='little') + \
+            int(1).to_bytes(4, byteorder='little') + \
+            int(len(m_buffer)).to_bytes(4, byteorder='little') + \
             m_buffer
 
     def __init__(self, mChain_hash, client_id, nonce, message_type, data):

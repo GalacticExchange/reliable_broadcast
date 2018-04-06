@@ -54,7 +54,7 @@ shared_ptr<vector<vector<char>>> Packet::parsePacket(shared_ptr<const vector<cha
         vector<char> rawMessage = vector<char>(packet.get()->begin() + offset, packet.get()->begin() + offset + len);
         rawMessages.push_back(rawMessage);
         offset += len;
-        cout << "len: " << len << endl;
+//        cout << "len: " << len << endl;
     }
 
     return make_shared<vector<vector<char>>>(rawMessages);

@@ -24,11 +24,17 @@ PacketProcessor::PacketProcessor(OuterSocket &outerSocket,
 
 void PacketProcessor::start() {
     for (;;) {
-        cout << "tying to pop message..." << endl;
+
+        std::stringstream q_sizes;
+        for (auto key : getShuffledKeys()) {
+            q_sizes << " " <<  queues[key].getSize();
+        }
+
+        cout << "== tying to pop message... queues sizes: " << q_sizes.str() << endl;
+
         semaphore.wait();
         cout << "################ woke up from wait! ##############" << endl;
 
-        //sleep(5); //todo flag lock wait
 
 //        std::unique_lock<std::mutex> lock(pMutex);
 ////        while (mQueue.empty()) {
@@ -37,13 +43,18 @@ void PacketProcessor::start() {
 
 
         for (auto key : getShuffledKeys()) {
-            cout << key << endl;
             vector<vector<char>> drained = queues[key].drainTo(5);
             if (!drained.empty()) {
 
                 for (int i = 0; i < drained.size() - 1; i++) {
-                    semaphore.wait();
                     cout << "!!!!!!!! loop wait decrement !!!!!" << endl;
+                    if (!semaphore.try_wait() ){
+                        cout << "FUUUUUUU " << endl;
+                        throw "FUUUUUU";
+                    }
+
+                    cout << "!!! loop wait decrement finished !!!" << endl;
+
                 }
                 pendingMessages[key].insert(pendingMessages[key].end(), drained.begin(),
                                             drained.end());
@@ -53,6 +64,8 @@ void PacketProcessor::start() {
 //        lock.unlock();
 
         send();
+
+        cout << "iteration finished" << endl;
     }
 }
 

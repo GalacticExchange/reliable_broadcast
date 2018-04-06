@@ -34,7 +34,7 @@ public:
         return mQueue.empty();
     }
 
-    std::vector<T> drainTo(int n) {
+    std::vector<T> drainTo(size_t n) {
 
         std::unique_lock<std::mutex> mlock(mMutex);
         std::vector<T> elements;
@@ -43,19 +43,28 @@ public:
             return elements;
         }
 
-        for (int i = n; i > 0; i--) {
-            elements.push_back(mQueue.front());
-            mQueue.pop();
-            if (mQueue.size() < i) {
-                break;
-            }
+        if (mQueue.size() < n){
+            n = mQueue.size();
         }
 
-        mlock.unlock();
+        for (size_t i = n; i > 0; i--) {
+            elements.push_back(mQueue.front());
+            mQueue.pop();
+
+//            if (mQueue.size() < i) {
+//                break;
+//            }
+        }
+
+//        mlock.unlock();
 
         return elements;
 
     };
+
+    size_t getSize(){
+        return mQueue.size();
+    }
 };
 
 #endif // THREADSAFEQUEUE_H

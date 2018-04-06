@@ -27,9 +27,9 @@ void InnerSocket::onReceive(size_t length) {
 
     for (const Node &node : (*mChains)[chainName]) {
         sendQueues[node.getId()].push(msg);
+        packetProcessor->notify();
     }
 
-    packetProcessor->notify();
     cout << "notified from inner socket" << endl;
 }
 

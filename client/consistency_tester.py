@@ -18,22 +18,27 @@ class ConsistencyTester(Tester):
         # print('Send', data, 'to', mchain)
         self.total_messages_count[mchain] += 1
         message = data.decode()
-        self.messages[mchain][message] = 0
+        self.messages[mchain][message] = set()
 
     def on_delivery(self, mchain, node_index, data):
         # print('Deliver', data, 'of', mchain, 'on #', node_index)
         message = data.decode()
-        count = self.messages[mchain][message] + 1
-        if count == self.node_count:
-            self.messages[mchain].pop(message)
-            self.good[mchain] += 1
+        if message not in self.messages[mchain]:
+            print('Node #%d deliver non sent message %s on chain %s' % (node_index, message, mchain))
         else:
-            self.messages[mchain][message] = count
+            if node_index in self.messages[mchain][message]:
+                print('Node #%d deliver message %s several times on chain %s' % (node_index, message, mchain))
+            else:
+                self.messages[mchain][message].add(node_index)
+                count = len(self.messages[mchain][message])
+                if count == self.node_count:
+                    self.messages[mchain].pop(message)
+                    self.good[mchain] += 1
 
     def get_result(self):
         result = dict()
         for mchain in self.mchains:
-            partial = sum(1 for count in self.messages[mchain].values() if count > 0)
+            partial = sum(1 for count in self.messages[mchain].values() if len(count) > 0)
             result[mchain] = self.good[mchain], \
                 partial, \
                 self.total_messages_count[mchain] - (self.good[mchain] + partial)

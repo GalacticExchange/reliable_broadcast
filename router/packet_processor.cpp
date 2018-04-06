@@ -5,7 +5,8 @@ using namespace std;
 PacketProcessor::PacketProcessor(OuterSocket &outerSocket,
                                  unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,
                                  const vector<Node> &nodes) :
-        queues(queues) {
+        queues(queues),
+        semaphore(0) {
     this->outerSocket = &outerSocket;
 
     for (auto &n : nodes) {
@@ -24,25 +25,30 @@ PacketProcessor::PacketProcessor(OuterSocket &outerSocket,
 void PacketProcessor::start() {
     for (;;) {
         cout << "tying to pop message..." << endl;
+        semaphore.wait();
 
         //sleep(5); //todo flag lock wait
 
-        std::unique_lock<std::mutex> lock(pMutex);
-//        while (mQueue.empty()) {
-        condition.wait(lock);
-//        }
+//        std::unique_lock<std::mutex> lock(pMutex);
+////        while (mQueue.empty()) {
+//        condition.wait(lock);
+////        }
 
 
         for (auto key : getShuffledKeys()) {
             cout << key << endl;
             vector<vector<char>> drained = queues[key].drainTo(5);
             if (!drained.empty()) {
+
+                for (int i = 0; i < drained.size() - 1; i++) {
+                    semaphore.wait();
+                }
                 pendingMessages[key].insert(pendingMessages[key].end(), drained.begin(),
                                             drained.end());
             }
         }
 
-        lock.unlock();
+//        lock.unlock();
 
         send();
     }
@@ -82,8 +88,9 @@ void PacketProcessor::addNode(Node &n) {
 }
 
 void PacketProcessor::notify() {
-    std::unique_lock<std::mutex> lock(pMutex);
-//    todo?
-//    lock.unlock();
-    condition.notify_one();
+//    std::unique_lock<std::mutex> lock(pMutex);
+////    todo?
+////    lock.unlock();
+//    condition.notify_one();
+    semaphore.post();
 }

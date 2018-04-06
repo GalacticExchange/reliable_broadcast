@@ -5,7 +5,7 @@
 #include "outer_socket.h"
 #include "../src/node.h"
 #include "packet.h"
-
+#include <boost/interprocess/sync/interprocess_semaphore.hpp>
 
 using namespace std;
 
@@ -26,6 +26,8 @@ class PacketProcessor {
 
     std::condition_variable condition;
     std::mutex pMutex;
+
+    boost::interprocess::interprocess_semaphore semaphore;
 
 public:
     PacketProcessor(OuterSocket &outerSocket, unordered_map<int, ThreadSafeQueue<vector<char> > > &queues,

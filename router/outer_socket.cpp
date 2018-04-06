@@ -24,7 +24,7 @@ OuterSocket::OuterSocket(int port, std::string &fifoDir) :
 
 
 void OuterSocket::onReceive(size_t length) {
-    std::cout << "Received message length: " << length << endl;
+    std::cout << "Outer received. Message length: " << length << endl;
 
     std::shared_ptr<const std::vector<char>> mMessage = make_shared<vector<char>>(
             *mBuffer.begin() ? mBuffer.begin() : mBuffer.begin() + 1, mBuffer.begin() + length);
@@ -36,10 +36,10 @@ void OuterSocket::onReceive(size_t length) {
         std::string mChain;
         uint64_to_string(Message::parseMChain(rawMsg), mChain);
 
-//        shared_ptr<Message> msgPtr = Message::parse(rawMsg.begin(), rawMsg.end());
-//        vector<char> data = msgPtr.get()->getData();
-//        string test(data.begin(),data.end());
-//        cout << "Message parsed: " << test << endl; //todo
+        shared_ptr<Message> msgPtr = Message::parse(rawMsg.begin(), rawMsg.end());
+        vector<char> data = msgPtr.get()->getData();
+        string test(data.begin(),data.end());
+        cout << "Message parsed outer: " << test << endl; //todo
 
         pipeController.sendToPipe(mChain, rawMsg);
     }

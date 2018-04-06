@@ -15,7 +15,7 @@ InnerSocket::InnerSocket(OuterSocket &outerSocket, unordered_map<uint64_t, vecto
 }
 
 void InnerSocket::onReceive(size_t length) {
-    cout << "Received message length: " << length << endl;
+    cout << "Inner received. Message length: " << length << endl;
 
     shared_ptr<const vector<char>> mMessage = make_shared<vector<char >>(
             *mBuffer.begin() ? mBuffer.begin() : mBuffer.begin() + 1, mBuffer.begin() + length);

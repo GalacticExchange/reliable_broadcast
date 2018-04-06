@@ -26,6 +26,7 @@ void PacketProcessor::start() {
     for (;;) {
         cout << "tying to pop message..." << endl;
         semaphore.wait();
+        cout << "################ woke up from wait! ##############" << endl;
 
         //sleep(5); //todo flag lock wait
 
@@ -42,6 +43,7 @@ void PacketProcessor::start() {
 
                 for (int i = 0; i < drained.size() - 1; i++) {
                     semaphore.wait();
+                    cout << "!!!!!!!! loop wait decrement !!!!!" << endl;
                 }
                 pendingMessages[key].insert(pendingMessages[key].end(), drained.begin(),
                                             drained.end());

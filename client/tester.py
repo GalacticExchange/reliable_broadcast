@@ -10,7 +10,6 @@ import itertools
 import string
 
 
-
 def string_generator():
     for length in itertools.count(1):
         for letters in itertools.product(string.ascii_lowercase, repeat=length):
@@ -29,17 +28,17 @@ class Tester:
         self.listener.register_handler(self.on_delivery)
         self.listener.listen(mchains, redis_addresses)
 
-    async def test(self, duration=10, rps=1, completion_time=5):
+    async def test(self, duration=10, rps=1, completion_time=5, iter_number=0):
         self.on_test_start()
         start_time = perf_counter()
         request_times = deque()
         total_messages_count = 0
         previous_rps_report_time = start_time
-        print('Start testing with target rps =', rps)
+        print(f'Start testing with target rps = {rps} , iteration = {iter_number}')
         while True:
             for mchain in self.mchains:
                 message = next(self.message_generator)
-                data = message.encode()
+                data = f'{iter_number}_{message}'.encode()
                 self.client.send(mchain, data)
                 self.on_send(mchain, data)
 
@@ -93,6 +92,7 @@ async def test(loop):
 
     def handler(mchain, source_id, data):
         print(source_id, mchain, data)
+
     redis_listener.register_handler(handler)
     redis_listener.listen([mchain], [(address[0], address[2]) for address in config[mchain]])
 

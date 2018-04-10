@@ -16,7 +16,8 @@ class UdpClient(Client):
 
     def send(self, mchain_hash, data):
         message = Message(mchain_hash, self._client_id, self._nonce, MessageType.SEND, data)
-        buffer = message.packet_encode()
+        # buffer = message.packet_encode()
+        buffer = message.encode()
         self._nonce += 1
         for node in self._nodes:
             self._socket.sendto(buffer, node)

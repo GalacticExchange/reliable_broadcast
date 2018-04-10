@@ -1,4 +1,4 @@
-#include "../router/file_utils.h"
+#include "file_utils.h"
 #include "node_config.h"
 
 #include <boost/log/trivial.hpp>

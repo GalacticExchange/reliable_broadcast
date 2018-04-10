@@ -59,7 +59,7 @@
           - { src: "../../tests/nodes/{{ inventory_hostname }}/node.json", dest: '/tmp/node/node.json', mode: '0644' }
           - { src: "../../tests/nodes/{{ inventory_hostname }}/chain.json", dest: '/tmp/node/m_chains/chain.json', mode: '0644' }
           - { src: '../../../broadcast', dest: '/tmp/binaries/broadcast', mode: '0755'  }
-          - { src: '../../../router/router', dest: '/tmp/binaries/router', mode: '0755' }
+#          - { src: '../../../router/router', dest: '/tmp/binaries/router', mode: '0755' }
 
 
 
@@ -68,10 +68,10 @@
       args:
         chdir: /home/ubuntu/reliable_broadcast/process_manager
 
-    - name: run router
-      shell: "nohup ./router /tmp/node/node.json > /tmp/node/logs/router.log 2>&1 &"
-      args:
-        chdir: /tmp/binaries
+#    - name: run router
+#      shell: "nohup ./router /tmp/node/node.json > /tmp/node/logs/router.log 2>&1 &"
+#      args:
+#        chdir: /tmp/binaries
 
     - name: run broadcast
       shell: "nohup ./broadcast /tmp/node/node.json /tmp/node/m_chains/chain.json > /tmp/node/logs/broadcast.log 2>&1 &"

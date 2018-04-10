@@ -13,7 +13,7 @@
 
 #include "../src/message.h"
 
-#include "file_utils.h"
+#include "../src/file_utils.h"
 
 class PipeController {
 

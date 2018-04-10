@@ -22,3 +22,5 @@ CMakeCache.txt
 
 router/router
 router/router.cbp
+
+ops/tests/machines.py

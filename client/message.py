@@ -15,11 +15,11 @@ class Message:
     data = ''.encode()
 
     def encode(self):
-        return self.mChain_hash.to_bytes(8, byteorder='little') \
+        return self.message_type.to_bytes(1, byteorder='little') \
+               + self.mChain_hash.to_bytes(8, byteorder='little') \
                + self.client_id.to_bytes(8, byteorder='little') \
                + self.nonce.to_bytes(8, byteorder='little') \
                + int(0).to_bytes(8, byteorder='little') \
-               + self.message_type.to_bytes(1, byteorder='little') \
                + self.data
 
     def packet_encode(self):

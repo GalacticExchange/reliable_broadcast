@@ -1,8 +1,11 @@
 #include "packet_manager.h"
 #include "reliablebroadcast.h"
 
+#include <boost/log/trivial.hpp>
+
 using boost::asio::io_service;
 
+using std::dynamic_pointer_cast;
 using std::make_shared;
 using std::shared_ptr;
 using std::vector;
@@ -23,11 +26,22 @@ PacketManager::PacketManager(io_service &io_service,
 void PacketManager::asyncProcess(vector<char>::const_iterator begin,
                                  vector<char>::const_iterator end)
 {
-    mIoService.post([this, begin, end]()
+    // TODO: do not block input buffer on parsing
+    shared_ptr<AbstractMessage> message = AbstractMessage::parse(begin, end);
+    if (message)
     {
-        this->mReliableBroadcast.asyncProcessMessage(
-                    Message::parse(begin, end));
-    });
+        mIoService.post([this, message]()
+        {
+            if (message->getType() > AbstractMessage::MessageType::READY)
+            {
+                throw std::logic_error("Not implemented");
+            }
+            this->mReliableBroadcast.asyncProcessMessage(
+                        dynamic_pointer_cast<Message>(message));
+        });
+    } else {
+        BOOST_LOG_TRIVIAL(debug) << "Received bad message";
+    }
 }
 
 void PacketManager::asyncBroadcast(shared_ptr<Message> message)

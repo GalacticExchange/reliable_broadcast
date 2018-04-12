@@ -13,6 +13,7 @@ public:
         SEND,
         ECHO_MESSAGE,
         READY,
+        PACKET,
         SIZE
     };
 
@@ -28,12 +29,16 @@ public:
     AbstractMessage &operator = (const AbstractMessage &) = delete;
 
     std::vector<char> encode() const;
+    void encode(std::vector<char>::iterator begin,
+                std::vector<char>::iterator end) const;
     static std::shared_ptr<AbstractMessage> parse(
             std::vector<char>::const_iterator begin,
             std::vector<char>::const_iterator end);
+    virtual size_t getEncodedSize() const;
 
     MessageType getType() const;
     void setMessageType(MessageType messageType);
+    virtual void print(std::ostream &os, const std::string &prefix = "") const;
 
 protected:
     template <class T>
@@ -42,11 +47,11 @@ protected:
                    size_t &offset);
     template <class T>
     static void write(std::vector<char>::iterator &begin, const T &value);
-    virtual size_t getEncodedSize() const = 0;
-    static size_t getOffset();
     virtual void encodeChild(std::vector<char>::iterator begin,
                         std::vector<char>::iterator end) const = 0;
 };
+
+std::ostream &operator << (std::ostream &os, std::shared_ptr<AbstractMessage> message);
 
 #include "abstract_message.tcc"
 

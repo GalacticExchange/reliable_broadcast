@@ -23,6 +23,7 @@ public:
 
     void asyncProcess(std::vector<char>::const_iterator begin,
                       std::vector<char>::const_iterator end);
+    void asyncProcess(std::shared_ptr<AbstractMessage> message);
     void asyncBroadcast(std::shared_ptr<Message> message);
 };
 

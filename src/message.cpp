@@ -9,6 +9,7 @@ using std::copy;
 using std::endl;
 using std::make_shared;
 using std::shared_ptr;
+using std::string;
 using std::vector;
 
 
@@ -43,7 +44,7 @@ size_t Message::getEncodedSize() const
             + sizeof(mNonce)
             + sizeof(mMChainHash)
             + sizeof(mNodeId);
-    return header_size + mData.size();
+    return AbstractMessage::getEncodedSize() + header_size + mData.size();
 }
 
 void Message::encodeChild(vector<char>::iterator begin, vector<char>::iterator end) const
@@ -74,7 +75,7 @@ Message::Message(vector<char>::const_iterator begin,
                  vector<char>::const_iterator end):
     AbstractMessage(begin, end)
 {
-    begin += AbstractMessage::getOffset();
+    begin += AbstractMessage::getEncodedSize();
 
     //    uint64_t mClientId;
     //    uint64_t mNonce;
@@ -112,6 +113,18 @@ Message::Message(vector<char>::const_iterator begin,
     mNodeId = parse<typeof(mNodeId)>(begin, end, offset);
 
     mData = vector<char>(begin + offset, end);
+}
+
+void Message::print(std::ostream &os, const std::string &prefix) const
+{
+    AbstractMessage::print(os);
+    os << prefix << "Chain hash: " << mMChainHash << endl;
+    os << prefix << "Client ID: " << mClientId << endl;
+    os << prefix << "Nonce: " << mNonce << endl;
+    os << prefix << "Node ID: " << mNodeId << endl;
+    os << prefix << "Data: [" << string(mData.begin(), mData.end()) << "] - "
+       << mData.size() << " bytes" << endl;
+
 }
 
 uint64_t Message::getNonce() const

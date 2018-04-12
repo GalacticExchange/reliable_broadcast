@@ -28,6 +28,8 @@ public:
     Message(const Message &) = delete;
     Message &operator = (const Message &) = delete;
 
+    void print(std::ostream &os, const std::string &prefix = "") const override;
+
     uint64_t getNonce() const;
     uint64_t getClientId() const;
     uint64_t getMChainHash() const;

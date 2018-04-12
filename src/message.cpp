@@ -61,10 +61,10 @@ Message::Message(uint64_t clientId,
                  uint64_t nonce,
                  uint64_t mChainHash,
                  uint64_t nodeId,
-                 vector<char> &&data):
+                 vector<char> &&data):    
+    mMChainHash(mChainHash),
     mClientId(clientId),
     mNonce(nonce),
-    mMChainHash(mChainHash),
     mNodeId(nodeId),
     mData(move(data))
 {

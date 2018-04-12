@@ -120,4 +120,5 @@ size_t AbstractMessage::getEncodedSize() const
 std::ostream &operator <<(std::ostream &os, std::shared_ptr<AbstractMessage> message)
 {
     message->print(os);
+    return os;
 }

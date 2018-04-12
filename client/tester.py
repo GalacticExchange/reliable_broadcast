@@ -19,13 +19,14 @@ def string_generator():
 class Tester:
     time_window_sec = 5
     message_generator = string_generator()
+    last_delivery_time = perf_counter()
 
     def __init__(self, mchains, client, redis_addresses, loop):
         self.mchains = mchains
         self.client = client
         self.redis_addresses = redis_addresses
         self.listener = RedisListener(loop)
-        self.listener.register_handler(self.on_delivery)
+        self.listener.register_handler(self._on_delivery)
         self.listener.listen(mchains, redis_addresses)
 
     async def test(self, duration=10, rps=1, completion_time=5, iter_number=0):
@@ -34,11 +35,11 @@ class Tester:
         request_times = deque()
         total_messages_count = 0
         previous_rps_report_time = start_time
-        print(f'Start testing with target rps = {rps} , iteration = {iter_number}')
+        print('Start testing with target rps = %d , iteration = %d' % (rps, iter_number))
         while True:
             for mchain in self.mchains:
                 message = next(self.message_generator)
-                data = f'{iter_number}_{message}'.encode()
+                data = ('%d_%s' % (iter_number, message)).encode()
                 self.client.send(mchain, data)
                 self.on_send(mchain, data)
 
@@ -64,7 +65,10 @@ class Tester:
                 break
         average_rps = total_messages_count / (current_time - start_time)
         print('Wait for completion', end='', flush=True)
-        await asyncio.sleep(completion_time)
+        now, wait_until = perf_counter(), self.last_delivery_time + completion_time
+        while now < wait_until:
+            await asyncio.sleep(wait_until - now)
+            now, wait_until = perf_counter(), self.last_delivery_time + completion_time
         print('\rDone with avarage rps =', average_rps)
         return self.get_result(), average_rps
 
@@ -79,6 +83,11 @@ class Tester:
 
     def get_result(self):
         return None
+
+    def _on_delivery(self, mchain, node_index, data):
+        self.last_delivery_time = perf_counter()
+        self.on_delivery(mchain, node_index, data)
+
 
 
 async def test(loop):

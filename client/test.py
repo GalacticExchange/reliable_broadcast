@@ -1,14 +1,11 @@
-import redis
 import itertools
 import string
 from udp_client import UdpClient
 from test_config import config
-from time import sleep, time
-from numpy import mean, std
-from redis_listener import RedisListener
-from consistency_tester import ConsistencyTester
+from queue_size_tester import QueueSizeTester
 import asyncio
 import matplotlib.pyplot as plt
+import sys
 
 
 def string_generator():
@@ -17,62 +14,18 @@ def string_generator():
             yield ''.join(letters)
 
 
-class MChainTester:
-    _client = None
-    _mchain_hash = None
-    _string_generator = string_generator()
-    _redis_connections = list()
-
-    def __init__(self, mchain_hash, client, redis_addresses):
-        self._mchain_hash = mchain_hash
-        self._client = client
-        self._redis_connections = self._init_redis_connections(redis_addresses)
-
-    # public
-
-    def test(self, concurrency=1):
-        sent_messages = set()
-        for _ in range(concurrency):
-            message = next(self._string_generator)
-            print('Send message \'%s\'' % message)
-            self._client.send(self._mchain_hash, message.encode())
-            sent_messages.add(message)
-        for index, redis_connection in enumerate(self._redis_connections):
-            print('Check delivery for node #%d' % index)
-            sent_messages_copy = set(sent_messages)
-            # for _ in range(len(sent_messages)):
-            while sent_messages_copy:
-                data = redis_connection.blpop(str(self._mchain_hash))
-                delivered_message = data[1].decode()
-                print('\tDelivered message \'%s\'' % delivered_message)
-                if delivered_message not in sent_messages_copy:
-                    # raise KeyError('Message \'%s\' was not sent' % delivered_message)
-                    print('Message \'%s\' was not sent' % delivered_message)
-                else:
-                    sent_messages_copy.remove(delivered_message)
-            if sent_messages_copy:
-                # raise KeyError('[' + ', '.join(sent_messages_copy) + '] were not delivered')
-                print('[' + ', '.join(sent_messages_copy) + '] were not delivered')
-        print('OK')
-
-    # private
-
-    def _init_redis_connections(self, redis_addresses):
-        return [redis.StrictRedis(host=address[0], port=address[1]) for address in redis_addresses]
-
-
-def test():
+def consistency_test():
     mchain = 1234
     # mchain = 5
     client = UdpClient([(address[0], address[1]) for address in config[mchain]])
     loop = asyncio.get_event_loop()
-    tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
+    tester = QueueSizeTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
 
-    min_rps, max_rps = 100, 800
+    min_rps, max_rps = 1000, 10000
     test_number = 10
     rps_axis, good, partial, lost = list(), list(), list(), list()
     for i, rps in enumerate(range(min_rps, max_rps, (max_rps - min_rps) // (test_number - 1))):
-        test_result = asyncio.ensure_future(tester.test(3, rps=rps, completion_time=20, iter_number=i), loop=loop)
+        test_result = asyncio.ensure_future(tester.test(3, rps=rps, completion_time=2, iter_number=i), loop=loop)
         loop.run_until_complete(test_result)
 
         test_result = test_result.result()
@@ -109,39 +62,50 @@ def test():
     fig.tight_layout()
     plt.show()
 
-    # plt.plot(rps_axis, good, rps_axis, partial, rps_axis, lost)
-    # plt.xlabel('Messages per second')
-    # plt.ylabel()
-    # plt.show()
+
+def queue_test():
+    mchain = 1234
+    # mchain = 5
+    client = UdpClient([(address[0], address[1]) for address in config[mchain]])
+    loop = asyncio.get_event_loop()
+    tester = QueueSizeTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
+
+    min_rps, max_rps = 1000, 3000
+    test_number = 3
+    test_duration, completion_time = 3, 2
+    fig, ax = plt.subplots()
+    ax.set_xlabel('Time (seconds)')
+    ax.set_ylabel('Messages in process')
+    max_time, max_queue = 0, 0
+    for i, rps in enumerate(range(min_rps, max_rps + 1, (max_rps - min_rps) // (test_number - 1))):
+        test_result = asyncio.ensure_future(tester.test(test_duration,
+                                                        rps=rps,
+                                                        completion_time=completion_time,
+                                                        iter_number=i), loop=loop)
+        loop.run_until_complete(test_result)
+
+        (x, y, _), rps = test_result.result()
+        ax.plot(x, y, label='%d rps' % int(rps))
+
+        max_time = max(max_time, x[-1])
+        max_queue = max(max_queue, max(y))
+
+    ax.plot([test_duration, test_duration], [0, max_queue], 'k:')
+
+    ax.set_xlim([0, max_time])
+    ax.set_ylim([0, max_queue])
+    ax.legend()
+
+    plt.show()
 
 
 def main():
-    # r = redis.StrictRedis(host='localhost', port=6379)
-    # key = str(5)
-    # r.rpush(key, 'test')
-    # result = r.lpop(key)
-    # print(result)
-    #
-    # return
+    test_function = consistency_test
+    if 'queue' in sys.argv:
+        test_function = queue_test
+    test_function()
 
-    # mchain = 1234
-    # # mchain = 5
-    # client = UdpClient([(address[0], address[1]) for address in config[mchain]])
-    # tester = MChainTester(mchain, client, [(address[0], address[2]) for address in config[mchain]])
-    # rps_list = list()
-    # while True:
-    #     n = 100
-    #     start = time()
-    #     tester.test(n)
-    #     finish = time()
-    #     duration = finish - start
-    #     rps = n / duration
-    #     rps_list.append(rps)
-    #     print('Process %d messages per second' % int(rps))
-    #     print('Mean %d messages per second with deviation %d' % (int(mean(rps_list)), int(std(rps_list))))
-    #     sleep(1)
-
-    test()
+    # consistency_test()
 
     # mchain = 1234
     # # mchain = 5

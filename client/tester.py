@@ -64,6 +64,7 @@ class Tester:
             if current_time > start_time + duration:
                 break
         average_rps = total_messages_count / (current_time - start_time)
+        self.on_stop_sending()
         print('Wait for completion', end='', flush=True)
         now, wait_until = perf_counter(), self.last_delivery_time + completion_time
         while now < wait_until:
@@ -72,13 +73,16 @@ class Tester:
         print('\rDone with avarage rps =', average_rps)
         return self.get_result(), average_rps
 
+    def on_test_start(self):
+        pass
+
     def on_send(self, mchain, data):
         pass
 
     def on_delivery(self, mchain, node_index, data):
         pass
 
-    def on_test_start(self):
+    def on_stop_sending(self):
         pass
 
     def get_result(self):

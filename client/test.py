@@ -68,11 +68,11 @@ def test():
     loop = asyncio.get_event_loop()
     tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
 
-    min_rps, max_rps = 100, 800
-    test_number = 10
+    min_rps, max_rps = 9000, 15000
+    test_number = 6
     rps_axis, good, partial, lost = list(), list(), list(), list()
     for i, rps in enumerate(range(min_rps, max_rps, (max_rps - min_rps) // (test_number - 1))):
-        test_result = asyncio.ensure_future(tester.test(3, rps=rps, completion_time=20, iter_number=i), loop=loop)
+        test_result = asyncio.ensure_future(tester.test(3, rps=rps, completion_time=3, iter_number=i), loop=loop)
         loop.run_until_complete(test_result)
 
         test_result = test_result.result()

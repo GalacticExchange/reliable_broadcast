@@ -170,7 +170,7 @@ shared_ptr<Session>
 ReliableBroadcast::SessionsPool::addSession(Session::Id id) {
     shared_ptr<Session> session = make_shared<Session>(mOwner, id);
     {
-        unique_lock<shared_mutex> lock(mSessionsMutex);
+        boost::unique_lock<shared_mutex> lock(mSessionsMutex);
         auto session_ptr = mSessions.find(id);
         if (session_ptr == mSessions.end()) {
             mSessions[session->getId()] = session;
@@ -183,7 +183,7 @@ ReliableBroadcast::SessionsPool::addSession(Session::Id id) {
 
 void ReliableBroadcast::SessionsPool::remove(Session::Id sessionId) {
 //    cerr << "Remove session #" << sessionId << endl;
-    unique_lock<shared_mutex> lock(mSessionsMutex);
+    boost::unique_lock<shared_mutex> lock(mSessionsMutex);
     mSessions.erase(sessionId);
 }
 

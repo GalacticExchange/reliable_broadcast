@@ -16,13 +16,11 @@ using std::string;
 using std::vector;
 
 
-std::string NodeConfig::getRedisHost() const
-{
+std::string NodeConfig::getRedisHost() const {
     return mRedisHost;
 }
 
-size_t NodeConfig::getRedisPort() const
-{
+size_t NodeConfig::getRedisPort() const {
     return mRedisPort;
 }
 
@@ -64,8 +62,7 @@ void NodeConfig::initFields(const boost::property_tree::ptree &json_config) {
     readChainConfigs();
 }
 
-void NodeConfig::readChainConfigs()
-{
+void NodeConfig::readChainConfigs() {
     vector<string> configs = FileUtils::listFiles(mChainConfigDir);
     for (const string &configPath : configs) {
         ChainConfig chainConfig(configPath);
@@ -94,25 +91,30 @@ const string &NodeConfig::getPipesDir() const {
     return mPipesDir;
 }
 
-std::shared_ptr<const ChainConfig> NodeConfig::getChainConfig(uint64_t chainHash) const
-{
+std::shared_ptr<const ChainConfig> NodeConfig::getChainConfig(uint64_t chainHash) const {
     shared_lock<shared_mutex> lock(mChainConfigsMutex);
     auto config_iterator = mChainConfigs.find(chainHash);
-    if (config_iterator == mChainConfigs.end())
-    {
+    if (config_iterator == mChainConfigs.end()) {
         throw std::logic_error("Request config of non existing chain");
     }
     return config_iterator->second;
 }
 
-void NodeConfig::setChainConfig(uint64_t chainHash, ChainConfig &&chainConfig)
-{
+void NodeConfig::setChainConfig(uint64_t chainHash, ChainConfig &&chainConfig) {
     BOOST_LOG_TRIVIAL(info) << "Set config for chain #" << chainHash;
     unique_lock<shared_mutex> lock(mChainConfigsMutex);
     mChainConfigs[chainHash] = make_shared<ChainConfig>(move(chainConfig));
 }
 
-void NodeConfig::setChainConfig(uint64_t chainHash, const ChainConfig &chainConfig)
-{
+void NodeConfig::setChainConfig(uint64_t chainHash, const ChainConfig &chainConfig) {
     setChainConfig(chainHash, ChainConfig(chainConfig));
+}
+
+std::vector<ChainConfig> NodeConfig::getConfigs() const {
+    vector<ChainConfig> v;
+    for (auto keyValue : mChainConfigs) {
+        v.push_back(*(keyValue.second));
+    }
+
+    return v;
 }

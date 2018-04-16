@@ -38,6 +38,8 @@ public:
     size_t getRedisPort() const;
     void readChainConfigs();
 
+    std::vector<ChainConfig> getConfigs() const;
+
 private:
     void initFields(const boost::property_tree::ptree &json_config);
 };

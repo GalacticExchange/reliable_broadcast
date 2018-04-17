@@ -36,12 +36,11 @@ using std::unordered_map;
 using std::vector;
 
 
-ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig):
-    mNodeConfig(nodeConfig),
-    mSocketController(nodeConfig.getPort()),
-    mPacketManager(mIoService, *this, mSocketController, nodeConfig),
-    mSessions(*this)
-{
+ReliableBroadcast::ReliableBroadcast(const NodeConfig &nodeConfig) :
+        mNodeConfig(nodeConfig),
+        mSocketController(nodeConfig.getPort()),
+        mPacketManager(mIoService, *this, mSocketController, nodeConfig),
+        mSessions(*this) {
 
 }
 
@@ -55,8 +54,7 @@ void ReliableBroadcast::start() {
     }
 
     mSocketController.listen([this](std::vector<char>::const_iterator begin,
-                                    std::vector<char>::const_iterator end)
-    {
+                                    std::vector<char>::const_iterator end) {
         this->mPacketManager.asyncProcess(begin, end);
     });
 
@@ -66,8 +64,9 @@ void ReliableBroadcast::start() {
 }
 
 void ReliableBroadcast::processMessage(shared_ptr<Message> message) {
-    shared_ptr<Session> session = mSessions.getOrCreateSession(Session::getId(message));
-    session->processMessage(message);
+    deliver(message);
+//    shared_ptr<Session> session = mSessions.getOrCreateSession(Session::getId(message));
+//    session->processMessage(message);
 }
 
 void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<Message> message) {
@@ -85,7 +84,7 @@ void ReliableBroadcast::broadcast(Message::MessageType messageType, shared_ptr<M
 //    cerr << " message in session #" << message->getSessionId() << endl;
 
     message->setNodeId(mNodeConfig.getId());
-    message->setMessageType(messageType);    
+    message->setMessageType(messageType);
 
     BOOST_LOG_TRIVIAL(debug) << "Broadcast message of type "
                              << message->getType() << " with nonce "
@@ -103,8 +102,7 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
                              << "]";
 //    cerr << "Deliver message with nonce " << message->getNonce() << endl;
     uint64_t mChainHash = message->getMChainHash();
-    if (mRedisClient.is_connected())
-    {
+    if (mRedisClient.is_connected()) {
         mRedisClient.rpush(to_string(mChainHash),
                            vector<string>(1,
                                           string(message->getData().begin(),
@@ -119,8 +117,7 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
             std::lock_guard<std::mutex> lock(mTimesMutex);
             mMessageDeliverTimes.push(current);
             while (!mMessageDeliverTimes.empty()
-                   && mMessageDeliverTimes.front() < current - WINDOW_LENGTH)
-            {
+                   && mMessageDeliverTimes.front() < current - WINDOW_LENGTH) {
                 mMessageDeliverTimes.pop();
             }
             rps = static_cast<double>(mMessageDeliverTimes.size()) / WINDOW_LENGTH.count();
@@ -135,25 +132,21 @@ void ReliableBroadcast::deliver(std::shared_ptr<Message> message) {
     }
 }
 
-void ReliableBroadcast::asyncProcessMessage(std::shared_ptr<Message> message)
-{
-    mIoService.post([this, message]()
-    {
+void ReliableBroadcast::asyncProcessMessage(std::shared_ptr<Message> message) {
+    mIoService.post([this, message]() {
         this->processMessage(message);
     });
 }
 
-void ReliableBroadcast::connectToRedis()
-{
+void ReliableBroadcast::connectToRedis() {
     mRedisClient.connect(mNodeConfig.getRedisHost(),
                          mNodeConfig.getRedisPort(),
-                         [](const std::string& host,
+                         [](const std::string &host,
                             std::size_t port,
-                            cpp_redis::client::connect_state status)
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Connection status to redis on "
-                                 << host << ':' << port << " is " << static_cast<int>(status);
-    },
+                            cpp_redis::client::connect_state status) {
+                             BOOST_LOG_TRIVIAL(debug) << "Connection status to redis on "
+                                                      << host << ':' << port << " is " << static_cast<int>(status);
+                         },
                          1000,
                          10);
 }

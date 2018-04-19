@@ -24,3 +24,12 @@ router/router
 router/router.cbp
 
 ops/tests/machines.py
+
+*.tfstate
+*.backup
+*.pyc
+
+data
+venv
+
+nodes_data/*.json

@@ -22,4 +22,4 @@ do
 done
 set -- "${POSITIONAL[@]}" # restore positional parameters
 
-ansible-playbook -i inventories/inventory playbooks/rerun_nodes.yml
+ansible-playbook -i inventories/inventory playbooks/deploy.yml

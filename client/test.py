@@ -1,5 +1,7 @@
 import itertools
 import string
+
+from consistency_tester import ConsistencyTester
 from udp_client import UdpClient
 from test_config import config
 from queue_size_tester import QueueSizeTester
@@ -19,7 +21,7 @@ def consistency_test():
     # mchain = 5
     client = UdpClient([(address[0], address[1]) for address in config[mchain]])
     loop = asyncio.get_event_loop()
-    tester = QueueSizeTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
+    tester = ConsistencyTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
 
     min_rps, max_rps = 1000, 10000
     test_number = 10
@@ -70,8 +72,8 @@ def queue_test():
     loop = asyncio.get_event_loop()
     tester = QueueSizeTester([mchain], client, [(address[0], address[2]) for address in config[mchain]], loop)
 
-    min_rps, max_rps = 1000, 3000
-    test_number = 3
+    min_rps, max_rps = 3000, 8000
+    test_number = 5
     test_duration, completion_time = 3, 2
     fig, ax = plt.subplots()
     ax.set_xlabel('Time (seconds)')

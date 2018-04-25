@@ -1,22 +1,3 @@
-### Verifiable Broadcast
-
-Party:
-
-**uses** UDP, ECDSA 
-
-**has** all public keys of other parties
-
-**has** its own private key
-
-*n* - total nodes.
-*t* - potential malicious nodes
-
- - wait message from client  
- - receive message, sign  
- - send signed message to client  
- - receive `(n+t+1)/2` signs from client -> check -> commit 
-
-
 ---  
 
 ### Reliable Broadcast
